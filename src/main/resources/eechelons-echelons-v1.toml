@@ -1,0 +1,61 @@
+[[echelons]]
+	# list of dimension namedspaced IDs that this echelon applies to. ie. dimension whitelist
+	dimensions=["minecraft:overworld"]
+	# a double value, so must include a decimal
+	hpFactor=0.2
+	# a double value, so must include a decimal
+	damageFactor=0.2
+	maxDamage=10.0
+	xpFactor=1.0
+	speedFactor=0.02
+	maxSpeed=0.35
+	mobBlacklist = ["minecraft:creeper"]
+[[echelons.stratum]]
+	min=30
+	max=319
+[[echelons.stratum.histogram]]
+	level=0
+	weight=200.0
+[[echelons.stratum.histogram]]
+	level=1
+	weight=150.0
+[[echelons.stratum.histogram]]
+	level=2
+	weight=100.0
+[[echelons.stratum]]
+	min=-10
+	max=29
+[[echelons.stratum.histogram]]
+	level=0
+	weight=100.0
+[[echelons.stratum.histogram]]
+	level=1
+	weight=120.0
+[[echelons.stratum.histogram]]
+	level=2
+	weight=200.0
+[[echelons.stratum.histogram]]
+	level=2
+	weight=200.0
+[[echelons.stratum]]
+	min=-64
+	max=-11
+[[echelons.stratum.histogram]]
+	level=1
+	weight=80.0
+[[echelons.stratum.histogram]]
+	level=2
+	weight=120.0
+[[echelons.stratum.histogram]]
+	level=3
+	weight=200.0
+
+[[echelons]]
+	dimensions=["."]
+	hpFactor=0.0
+[[echelons.stratum]]
+	min=-64
+	max=319
+[[echelons.stratum.histogram]]
+	level=0
+	weight=1.0
