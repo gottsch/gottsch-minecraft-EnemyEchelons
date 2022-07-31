@@ -112,7 +112,6 @@ public class EEchelons {
 	private void config(final ModConfigEvent event) {
 		if (event.getConfig().getModId().equals(MODID)) {
 			if (event.getConfig().getType() == Type.SERVER) {
-				//		        ChampionsConfig.bake();
 				IConfigSpec<?> spec = event.getConfig().getSpec();
 				// get the toml config data
 				CommentedConfig commentedConfig = event.getConfig().getConfigData();
@@ -121,9 +120,7 @@ public class EEchelons {
 					// transform/copy the toml into the config
 					Config.transformEchelons(commentedConfig);
 					EchelonManager.build();					
-					EEchelons.LOGGER.info("echelons -> {}", Config.echelons);
 				} 
-
 			}
 		}
 	}
