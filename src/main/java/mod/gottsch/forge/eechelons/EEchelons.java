@@ -38,11 +38,13 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.DistExecutor;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.IConfigSpec;
 import net.minecraftforge.fml.config.ModConfig.Type;
 import net.minecraftforge.fml.event.config.ModConfigEvent;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLPaths;
 
@@ -69,6 +71,7 @@ public class EEchelons {
 		// register the deferred registries
 		Registration.init();
 		// register the server config
+		ModLoadingContext.get().registerConfig(Type.CLIENT, Config.CLIENT_SPEC);
 		ModLoadingContext.get().registerConfig(Type.SERVER, Config.SERVER_SPEC);
 		// create the default config
 		createServerConfig(Config.ECHELONS_SPEC, "echelons", ECHELONS_CONFIG_VERSION);
@@ -82,7 +85,7 @@ public class EEchelons {
 		// register 'ClientSetup::init' to be called at mod setup time (client only)
 		DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> modEventBus.addListener(ClientSetup::init));
 	}
-
+	
 	/**
 	 * 
 	 * @param spec

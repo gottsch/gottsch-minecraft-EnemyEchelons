@@ -38,10 +38,21 @@ public class EchelonsHolder {
 		private Double maxHp;
 		private Double damageFactor;
 		private Double maxDamage;
-		private Double xpFactor;
-		private Double maxXp;
+		private Double knockbackIncrement;
+		private Double maxKnockback;
+		private Double knockbackResistIncrement;
+		private Double maxKnockbackResist;
+		private Double armorFactor;
+		private Double maxArmor;
+		private Double armorToughnessFactor;
+		private Double maxArmorToughness;
 		private Double speedFactor;
 		private Double maxSpeed;
+		private Double flySpeedFactor;
+		private Double maxFlySpeed;
+		
+		private Double xpFactor;
+		private Double maxXp;
 		
 		private List<String> mobBlacklist;
 
@@ -143,6 +154,70 @@ public class EchelonsHolder {
 
 		public void setMaxSpeed(Double maxSpeed) {
 			this.maxSpeed = maxSpeed;
+		}
+
+		public Double getKnockbackIncrement() {
+			return knockbackIncrement;
+		}
+
+		public void setKnockbackIncrement(Double knockbackIncrement) {
+			this.knockbackIncrement = knockbackIncrement;
+		}
+
+		public Double getMaxKnockback() {
+			return maxKnockback;
+		}
+
+		public void setMaxKnockback(Double maxKnockback) {
+			this.maxKnockback = maxKnockback;
+		}
+
+		public Double getKnockbackResistIncrement() {
+			return knockbackResistIncrement;
+		}
+
+		public void setKnockbackResistIncrement(Double knockbackResistIncrement) {
+			this.knockbackResistIncrement = knockbackResistIncrement;
+		}
+
+		public Double getMaxKnockbackResist() {
+			return maxKnockbackResist;
+		}
+
+		public void setMaxKnockbackResist(Double maxKnockbackResist) {
+			this.maxKnockbackResist = maxKnockbackResist;
+		}
+
+		public Double getArmorFactor() {
+			return armorFactor;
+		}
+
+		public void setArmorFactor(Double armorFactor) {
+			this.armorFactor = armorFactor;
+		}
+
+		public Double getMaxArmor() {
+			return maxArmor;
+		}
+
+		public void setMaxArmor(Double maxArmor) {
+			this.maxArmor = maxArmor;
+		}
+
+		public Double getArmorToughnessFactor() {
+			return armorToughnessFactor;
+		}
+
+		public void setArmorToughnessFactor(Double armorToughnessFactor) {
+			this.armorToughnessFactor = armorToughnessFactor;
+		}
+
+		public Double getMaxArmorToughness() {
+			return maxArmorToughness;
+		}
+
+		public void setMaxArmorToughness(Double maxArmorToughness) {
+			this.maxArmorToughness = maxArmorToughness;
 		}		
 	}
 	

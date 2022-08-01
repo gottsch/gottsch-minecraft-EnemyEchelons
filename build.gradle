@@ -158,15 +158,16 @@ repositories {
     maven {
         url "${project.projectDir}/../maven"
     }
+    maven {
+        name = "CurseMaven"
+        url = "https://www.cursemaven.com"
+    }
             
     // If you have mod jar dependencies in ./libs, you can declare them as a repository like so:
      //flatDir {
       //   dir 'libs'
     // }
 }
-
-def gottschcore_path="/libs/GottschCore-mc1.18.2-f40.1.0-v1.7.0.jar"
-println gottschcore_path
 
 dependencies {
     // Specify the version of Minecraft to use. If this is any group other than 'net.minecraft', it is assumed
@@ -180,6 +181,9 @@ dependencies {
     // implementation fg.deobf("com.tterrag.registrate:Registrate:MC${mc_version}-${registrate_version}") // Adds registrate as a dependency
 	//compileOnly files(gottschcore_path)
 	compileOnly fg.deobf("someguyssoftware.gottschcore:GottschCore:mc1.18.2-f40.1.0-v1.7.0")
+	compileOnly fg.deobf("curse.maven:champions-307152:${cf_champions}")
+	compileOnly fg.deobf("curse.maven:jade-324717:${cf_jade}")
+
 	// implementation files(gottschcore_path)
 	//runtimeOnly files(minimap_path)
     // Examples using mod jars from ./libs
@@ -194,12 +198,12 @@ dependencies {
 jar {
     manifest {
         attributes([
-                "Specification-Title"     : "eechelons",
-                "Specification-Vendor"    : "eechelonssareus",
-                "Specification-Version"   : "1", // We are version 1 of ourselves
-                "Implementation-Title"    : project.name,
+                "Specification-Title"     : "Enemy Echelons",
+                "Specification-Vendor"    : "gottsch",
+                "Specification-Version"   : "1",
+                "Implementation-Title"    : "Enemy Echelons",
                 "Implementation-Version"  : project.jar.archiveVersion,
-                "Implementation-Vendor"   : "eechelonssareus",
+                "Implementation-Vendor"   : "gottsch",
                 "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
         ])
     }

@@ -42,6 +42,9 @@ import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 public class HudEventHandler {
 
 	public static boolean isRendering = false;
+	
+	// NOTE these are only used to check where the offset is set to, so other integrations can move if they overlap
+	// these are NOT used in the actual echelons rendering of background and level text 
 	public static int startX = 0;
 	public static int startY = 0;
 
@@ -57,7 +60,6 @@ public class HudEventHandler {
 				Minecraft mc = Minecraft.getInstance();
 				Optional<LivingEntity> livingEntity = MouseUtil.getMouseOverEchelonMob(mc, evt.getPartialTicks());
 				livingEntity.ifPresent(entity -> {
-//					EEchelons.LOGGER.info("entity is present -> {}", livingEntity.get().getDisplayName().getString());
 					PoseStack matrixStack = evt.getMatrixStack();
 
 					if (HudUtil.renderLevelBar(matrixStack, entity)) {

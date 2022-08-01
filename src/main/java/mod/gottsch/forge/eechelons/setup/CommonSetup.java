@@ -20,6 +20,8 @@
 package mod.gottsch.forge.eechelons.setup;
 
 import mod.gottsch.forge.eechelons.EEchelons;
+import mod.gottsch.forge.eechelons.integration.ChampionsIntegration;
+import mod.gottsch.forge.eechelons.integration.WailaIntegration;
 import mod.gottsch.forge.eechelons.network.EEchelonsNetwork;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
@@ -31,9 +33,11 @@ import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
  */
 @Mod.EventBusSubscriber(modid = EEchelons.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class CommonSetup {
-	
+
 	public static void init(final FMLCommonSetupEvent event) {
 		EEchelonsNetwork.register();
+		ChampionsIntegration.init();
+		WailaIntegration.init();
 	}	
 
 }

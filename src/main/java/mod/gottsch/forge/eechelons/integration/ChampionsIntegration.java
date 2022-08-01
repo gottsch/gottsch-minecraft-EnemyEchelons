@@ -15,17 +15,36 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with Enemy Echelons.  If not, see <http://www.gnu.org/licenses/lgpl>.
  */
-package mod.gottsch.forge.eechelons.setup;
+package mod.gottsch.forge.eechelons.integration;
+
+import mod.gottsch.forge.eechelons.config.Config;
+import net.minecraft.world.entity.Entity;
+import net.minecraftforge.event.AttachCapabilitiesEvent;
+import net.minecraftforge.fml.ModList;
+import top.theillusivec4.champions.common.capability.ChampionCapability;
 
 /**
  * 
- * @author Mark Gottschling on Jul 24, 2022
+ * @author Mark Gottschling on Jul 31, 2022
  *
  */
-public class Registration {
-
+public class ChampionsIntegration {
+	private static boolean championsLoaded = false;
+	
 	public static void init() {
-		
+		ModList modList = ModList.get();
+
+		if (modList.isLoaded("champions")) {
+			championsLoaded = true;
+		}
+	}
+
+	public static boolean isEnabled() {
+		return Config.CLIENT.enableChampionsIntegration.get() && championsLoaded;
+	}
+
+	public static boolean hasCapability(AttachCapabilitiesEvent<Entity> event) {
+		return event.getCapabilities().get(ChampionCapability.ID) != null;
 	}
 
 }

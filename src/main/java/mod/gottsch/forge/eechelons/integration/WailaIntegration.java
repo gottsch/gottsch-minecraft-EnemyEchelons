@@ -15,22 +15,42 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with Enemy Echelons.  If not, see <http://www.gnu.org/licenses/lgpl>.
  */
-package mod.gottsch.forge.eechelons.setup;
+package mod.gottsch.forge.eechelons.integration;
 
-import mod.gottsch.forge.eechelons.EEchelons;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+import mod.gottsch.forge.eechelons.config.Config;
+import net.minecraftforge.fml.ModList;
 
 /**
  * 
- * @author Mark Gottschling on Jul 24, 2022
+ * @author Mark Gottschling on Aug 1, 2022
  *
  */
-@Mod.EventBusSubscriber(modid = EEchelons.MODID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD)
-public class ClientSetup {
+public class WailaIntegration {
+	private static boolean jadeLoaded = false;
+	private static boolean wthitLoaded = false;
 	
-    public static void init(final FMLClientSetupEvent event) {
-    	
-    }
+	public static void init() {
+		ModList modList = ModList.get();
+
+		if (modList.isLoaded("jade")) {
+			jadeLoaded = true;
+		}
+		else if (modList.isLoaded("wthit")) {
+			wthitLoaded = true;
+		}
+	}
+
+	public static boolean isEnabled() {
+		return Config.CLIENT.enableWailaIntegration.get()
+				&& (jadeLoaded || wthitLoaded);
+	}
+	
+	public static boolean isJadeLoaded() {
+		return jadeLoaded;
+	}
+
+	public static boolean isWthitLoaded() {
+		return wthitLoaded;
+	}
+
 }

@@ -1,27 +1,26 @@
 /*
- * This file is part of  Mevels.
+ * This file is part of  Enemy Echelons.
  * Copyright (c) 2022, Mark Gottschling (gottsch)
- * 
- * All rights reserved.
  *
- * Mevels is free software: you can redistribute it and/or modify
+ * Enemy Echelons is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Mevels is distributed in the hope that it will be useful,
+ * Enemy Echelons is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with Mevels.  If not, see <http://www.gnu.org/licenses/lgpl>.
+ * along with Enemy Echelons.  If not, see <http://www.gnu.org/licenses/lgpl>.
  */
 package mod.gottsch.forge.eechelons.capability;
 
 
 import mod.gottsch.forge.eechelons.EEchelons;
 import mod.gottsch.forge.eechelons.echelon.EchelonManager;
+import mod.gottsch.forge.eechelons.integration.ChampionsIntegration;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -66,7 +65,10 @@ public class EEchelonsCapabilities {
 		public static void attachCapabilities(AttachCapabilitiesEvent<Entity> event) {
 			Entity entity = event.getObject();
 			if (EchelonManager.isValidEntity(entity)) {
-					event.addCapability(LevelCapability.ID, new LevelCapability());
+				if (ChampionsIntegration.isEnabled() && ChampionsIntegration.hasCapability(event)) {
+					return;
+				}
+				event.addCapability(LevelCapability.ID, new LevelCapability());
 			}
 		}
 	}

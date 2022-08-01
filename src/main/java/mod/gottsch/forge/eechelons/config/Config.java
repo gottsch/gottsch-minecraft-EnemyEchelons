@@ -1,21 +1,19 @@
 /*
- * This file is part of  Mevels.
+ * This file is part of  Enemy Echelons.
  * Copyright (c) 2022, Mark Gottschling (gottsch)
- * 
- * All rights reserved.
  *
- * Mevels is free software: you can redistribute it and/or modify
+ * Enemy Echelons is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Mevels is distributed in the hope that it will be useful,
+ * Enemy Echelons is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with Mevels.  If not, see <http://www.gnu.org/licenses/lgpl>.
+ * along with Enemy Echelons.  If not, see <http://www.gnu.org/licenses/lgpl>.
  */
 package mod.gottsch.forge.eechelons.config;
 
@@ -29,6 +27,7 @@ import com.electronwill.nightconfig.core.conversion.ObjectConverter;
 
 import mod.gottsch.forge.eechelons.EEchelons;
 import mod.gottsch.forge.eechelons.config.EchelonsHolder.Echelon;
+import net.minecraftforge.common.ForgeConfig.Client;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.common.ForgeConfigSpec.BooleanValue;
 import net.minecraftforge.common.ForgeConfigSpec.IntValue;
@@ -47,51 +46,82 @@ public final class Config {
 	public static final ForgeConfigSpec SERVER_SPEC;
 	public static final ServerConfig SERVER;
 
+	public static final ForgeConfigSpec CLIENT_SPEC;
+	public static final ClientConfig CLIENT;
+
 	static {
 		final Pair<ServerConfig, ForgeConfigSpec> specPair = new ForgeConfigSpec.Builder()
 				.configure(ServerConfig::new);
 		SERVER_SPEC = specPair.getRight();
 		SERVER = specPair.getLeft();
+
+		final Pair<ClientConfig, ForgeConfigSpec> clientSpecPair = new ForgeConfigSpec.Builder()
+				.configure(ClientConfig::new);
+		CLIENT_SPEC = clientSpecPair.getRight();
+		CLIENT = clientSpecPair.getLeft();
+	}
+
+	public static class ClientConfig {
+		public final IntValue hudXOffset;
+		public final IntValue hudYOffset;
+		public final IntValue hudRange;
+		public final BooleanValue useDarkHud;
+		
+		public final ForgeConfigSpec.BooleanValue enableWailaIntegration;
+		public final ForgeConfigSpec.BooleanValue enableChampionsIntegration;
+
+		public ClientConfig(ForgeConfigSpec.Builder builder) {
+			builder.push("hud");
+
+			hudXOffset = builder
+					.comment(" The HUD x-offset.")
+					.defineInRange("hudXOffset", 0, -1000, 1000);
+
+			hudYOffset = builder
+					.comment(" The HUD y-offset.")
+					.defineInRange("hudYOffset", 0, -1000, 1000);
+
+			hudRange = builder
+					.comment(" The distance that the HUD can be seen from (in blocks).")
+					.defineInRange("hudRange", 50, 0, 100);
+			
+			useDarkHud = builder
+					.comment(" Use dark theme HUD.")
+					.define("useDarkThemeHud", true);
+			
+			enableWailaIntegration =
+					builder.comment(" Moves the Enemy Echelons HUD beside (to the left) of the WAILA HUD.",
+							" This setting is ignored if hudXOffset or hudYOffset are set (not 0).")
+					.define("enableWailaIntegration", true);
+
+			enableChampionsIntegration =
+					builder.comment(" Moves the Enemy Echelons HUD beside (to the left) of the Champions HUD.",
+							" This setting will supercede enableWailaIntegration.",
+							" This setting is ignored if hudXOffset or hudYOffset are set (not 0).")
+					.define("enableChampionsIntegration", true);
+			
+			builder.pop();
+		}
 	}
 
 	/**
-	 * For general mod config options
+	 * For server mod config options
 	 *
 	 */
-	// TODO this probably could just be ClientConfig or CommonConfig
 	public static class ServerConfig {
 		public final BooleanValue showHud;
-		public final IntValue hudXOffset;
-	    public final IntValue hudYOffset;
-	    public final IntValue hudRange;
-	    
+
 		public ServerConfig(ForgeConfigSpec.Builder builder) {
 			builder.push("general");
 			builder.pop();
 
 			builder.push("hud");
-			
-			// TODO showHud remains in server config so server admin can determine if users are able to see the level or not.
+
+			// showHud remains in server config so server admin can determine if users are able to see the level or not.
 			showHud = builder
 					.comment("Enable HUD display.")
-//			        .translation("showHud")
-			        .define("showHud", true);
-			
-		      hudXOffset = builder
-		    		  .comment("The HUD x-offset.")
-//		    	      .translation("hudXOffset")
-		    	      .defineInRange("hudXOffset", 0, -1000, 1000);
+					.define("showHud", true);
 
-    	      hudYOffset = builder
-    	    		  .comment("The HUD y-offset.")
-//		    	    		  .translation("hudYOffset")
-    	    		  .defineInRange("hudYOffset", 0, -1000, 1000);
-
-    	      hudRange = builder
-    	    		  .comment("The distance that the HUD can be seen from (in blocks).")
-//		    	    		  .translation(CONFIG_PREFIX + "hudRange")
-    	    		  .defineInRange("hudRange", 50, 0, 100);
-		    	      
 			builder.pop();
 		}
 	}
@@ -105,14 +135,14 @@ public final class Config {
 	 * list of echelon configurations
 	 */
 	public static List<Echelon> echelons;
-	
+
 	static {
 		final Pair<EchelonsConfig, ForgeConfigSpec> specPair = new ForgeConfigSpec.Builder()
 				.configure(EchelonsConfig::new);
 		ECHELONS_SPEC = specPair.getRight();
 		ECHELONS_CONFIG = specPair.getLeft();
 	}
-	
+
 	public static class EchelonsConfig {
 		public EchelonsHolder echelonsHolder;
 		public EchelonsConfig(ForgeConfigSpec.Builder builder) {
@@ -127,9 +157,8 @@ public final class Config {
 	 */
 	public static void transformEchelons(CommentedConfig configData) {
 		// convert the data to an object and set the holder in the _CONFIG
-	    ECHELONS_CONFIG.echelonsHolder = new ObjectConverter().toObject(configData, EchelonsHolder::new);
-//	    Mevels.LOGGER.info("config.echelons -> {}", ECHELONS_CONFIG.echelonsHolder.echelons);
-	    // get the list from the holder and set the config property
-	    echelons = ECHELONS_CONFIG.echelonsHolder.echelons;
+		ECHELONS_CONFIG.echelonsHolder = new ObjectConverter().toObject(configData, EchelonsHolder::new);
+		// get the list from the holder and set the config property
+		echelons = ECHELONS_CONFIG.echelonsHolder.echelons;
 	}
 }
