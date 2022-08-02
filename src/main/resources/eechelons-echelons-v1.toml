@@ -42,11 +42,16 @@
 	xpFactor=0.2
 
 	# list of mobs that should not receive modification
-	mobBlacklist = []
+	mobBlacklist = ["minecraft:creeper"]
 	[[echelons.stratum]]
+		# the min y-value in the strata
 		min=60
+		# the max y-value in the strata
 		max=319
+		# the histogram is a list of level+weight pairs. the higher the weight, the more likely the corresponding level will be selected.
+		# note: levels are integers ie. no decimals. weights are doubles, requires decimals.
 		[[echelons.stratum.histogram]]
+			# level 0 = vanilla - ie. no modifications
 			level=0
 			weight=200.0
 		[[echelons.stratum.histogram]]
@@ -109,6 +114,48 @@
 		[[echelons.stratum.histogram]]
 			level=5
 			weight=120.0
+
+# this echelon definition contains a whitelisted creeper, therefore this definition will only apply to creepers in the overworld.
+[[echelons]]
+	dimensions=["minecraft:overworld"]
+	mobWhitelist=["minecraft:creeper"]
+	hpFactor=0.25
+	knockbackResistIncrement=0.25
+	[[echelons.stratum]]
+		min=30
+		max=64
+		[[echelons.stratum.histogram]]
+			level=0
+			weight=100.0
+		[[echelons.stratum.histogram]]
+			level=1
+			weight=200.0
+	[[echelons.stratum]]
+		min=0
+		max=29
+		[[echelons.stratum.histogram]]
+			level=0
+			weight=50.0
+		[[echelons.stratum.histogram]]
+			level=1
+			weight=100.0
+		[[echelons.stratum.histogram]]
+			level=2
+			weight=100.0
+	[[echelons.stratum]]
+		min=-64
+		max=-1
+		[[echelons.stratum.histogram]]
+			level=0
+			weight=10.0
+		[[echelons.stratum.histogram]]
+			level=1
+			weight=100.0
+		[[echelons.stratum.histogram]]
+			level=2
+			weight=200.0
+# this is a catch-all echelon. this echelon will be used if a dimension isn't specified in another echelon
+# use "." or ".:." or "*" or "*:*" for the dimension
 [[echelons]]
 	dimensions=["."]
 	hpFactor=0.0

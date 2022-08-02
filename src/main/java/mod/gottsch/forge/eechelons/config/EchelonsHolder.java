@@ -34,31 +34,35 @@ public class EchelonsHolder {
 	
 	public static class Echelon {
 		private List<String> dimensions;
-		private Double hpFactor;
+		private Double hpFactor = 0.0;
 		private Double maxHp;
-		private Double damageFactor;
+		private Double damageFactor = 0.0;
 		private Double maxDamage;
-		private Double knockbackIncrement;
+		private Double knockbackIncrement = 0.0;
 		private Double maxKnockback;
-		private Double knockbackResistIncrement;
+		private Double knockbackResistIncrement = 0.0;
 		private Double maxKnockbackResist;
-		private Double armorFactor;
+		private Double armorFactor = 0.0;
 		private Double maxArmor;
-		private Double armorToughnessFactor;
+		private Double armorToughnessFactor = 0.0;
 		private Double maxArmorToughness;
-		private Double speedFactor;
+		private Double speedFactor = 0.0;
 		private Double maxSpeed;
-		private Double flySpeedFactor;
+		private Double flySpeedFactor = 0.0;
 		private Double maxFlySpeed;
 		
-		private Double xpFactor;
+		private Double xpFactor = 0.0;
 		private Double maxXp;
 		
+		private List<String> mobWhitelist;
 		private List<String> mobBlacklist;
 
 		private List<Strata> stratum;
 		
 		public List<String> getDimensions() {
+			if (dimensions == null) {
+				dimensions = new ArrayList<>();
+			}
 			return dimensions;
 		}
 
@@ -71,15 +75,29 @@ public class EchelonsHolder {
 		}
 
 		public void setHpFactor(Double hpFactor) {
+			if (hpFactor == null) {
+				hpFactor = 0.0;
+			}
 			this.hpFactor = hpFactor;
+		}
+		
+		public boolean hasHpFactor() {
+			return hpFactor != null && hpFactor > 0.0;
 		}
 
 		public Double getDamageFactor() {
+			if (damageFactor == null) {
+				damageFactor = 0.0;
+			}
 			return damageFactor;
 		}
 
 		public void setDamageFactor(Double damageFactor) {
 			this.damageFactor = damageFactor;
+		}
+		
+		public boolean hasDamageFactor() {
+			return damageFactor != null && damageFactor > 0.0;
 		}
 
 		public List<String> getMobBlacklist() {
@@ -125,9 +143,16 @@ public class EchelonsHolder {
 		}
 
 		public Double getXpFactor() {
+			if (xpFactor == null) {
+				xpFactor = 0.0;
+			}
 			return xpFactor;
 		}
 
+		public boolean hasXpFactor() {
+			return xpFactor != null && xpFactor > 0.0;
+		}
+		
 		public void setXpFactor(Double xpFactor) {
 			this.xpFactor = xpFactor;
 		}
@@ -141,6 +166,9 @@ public class EchelonsHolder {
 		}
 
 		public Double getSpeedFactor() {
+			if (speedFactor == null) {
+				speedFactor = 0.0;
+			}
 			return speedFactor;
 		}
 
@@ -148,6 +176,10 @@ public class EchelonsHolder {
 			this.speedFactor = speedFactor;
 		}
 
+		public boolean hasSpeedFactor() {
+			return speedFactor != null && speedFactor > 0.0;
+		}
+		
 		public Double getMaxSpeed() {
 			return maxSpeed;
 		}
@@ -157,6 +189,9 @@ public class EchelonsHolder {
 		}
 
 		public Double getKnockbackIncrement() {
+			if (knockbackIncrement == null) {
+				knockbackIncrement = 0.0;
+			}
 			return knockbackIncrement;
 		}
 
@@ -164,6 +199,10 @@ public class EchelonsHolder {
 			this.knockbackIncrement = knockbackIncrement;
 		}
 
+		public boolean hasKnockbackIncrement() {
+			return knockbackIncrement != null && knockbackIncrement > 0.0;
+		}
+		
 		public Double getMaxKnockback() {
 			return maxKnockback;
 		}
@@ -173,6 +212,9 @@ public class EchelonsHolder {
 		}
 
 		public Double getKnockbackResistIncrement() {
+			if (knockbackResistIncrement == null) {
+				knockbackResistIncrement = 0.0;
+			}
 			return knockbackResistIncrement;
 		}
 
@@ -180,6 +222,10 @@ public class EchelonsHolder {
 			this.knockbackResistIncrement = knockbackResistIncrement;
 		}
 
+		public boolean hasKnockbackResistIncrement() {
+			return knockbackResistIncrement != null && knockbackResistIncrement > 0.0;
+		}
+		
 		public Double getMaxKnockbackResist() {
 			return maxKnockbackResist;
 		}
@@ -187,8 +233,11 @@ public class EchelonsHolder {
 		public void setMaxKnockbackResist(Double maxKnockbackResist) {
 			this.maxKnockbackResist = maxKnockbackResist;
 		}
-
+		
 		public Double getArmorFactor() {
+			if (armorFactor == null) {
+				armorFactor = 0.0;
+			}
 			return armorFactor;
 		}
 
@@ -196,6 +245,10 @@ public class EchelonsHolder {
 			this.armorFactor = armorFactor;
 		}
 
+		public boolean hasArmorFactor() {
+			return armorFactor != null && armorFactor > 0.0;
+		}
+		
 		public Double getMaxArmor() {
 			return maxArmor;
 		}
@@ -205,6 +258,9 @@ public class EchelonsHolder {
 		}
 
 		public Double getArmorToughnessFactor() {
+			if (armorToughnessFactor == null) {
+				armorToughnessFactor = 0.0;
+			}
 			return armorToughnessFactor;
 		}
 
@@ -212,12 +268,27 @@ public class EchelonsHolder {
 			this.armorToughnessFactor = armorToughnessFactor;
 		}
 
+		public boolean hasArmorToughnessFactor() {
+			return armorToughnessFactor != null && armorToughnessFactor > 0.0;
+		}
+		
 		public Double getMaxArmorToughness() {
 			return maxArmorToughness;
 		}
 
 		public void setMaxArmorToughness(Double maxArmorToughness) {
 			this.maxArmorToughness = maxArmorToughness;
+		}
+
+		public List<String> getMobWhitelist() {
+			if (mobWhitelist == null) {
+				mobWhitelist = new ArrayList<>();
+			}
+			return mobWhitelist;
+		}
+
+		public void setMobWhitelist(List<String> mobWhitelist) {
+			this.mobWhitelist = mobWhitelist;
 		}		
 	}
 	

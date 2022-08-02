@@ -6,7 +6,7 @@ license="GNU GPL v3"
 
 # A URL to refer people to when problems occur with this mod
 # optional
-issueTrackerURL="https://github.com/gottsch/gottsch-minecraft-Mevels/issues"
+issueTrackerURL="https://github.com/gottsch/gottsch-minecraft-EnemyEchelons/issues"
 
 [[mods]] #mandatory
 modId="eechelons" #mandatory
@@ -14,7 +14,7 @@ version="1.0.0" #mandatory
 displayName="Enemy Echelons" #mandatory
 
 # A URL to query for updates for this mod. See the JSON update specification https://mcforge.readthedocs.io/en/latest/gettingstarted/autoupdate/
-updateJSONURL="https://raw.githubusercontent.com/gottsch/gottsch-minecraft-Mevels/1.18.2-main/update.json"
+updateJSONURL="https://raw.githubusercontent.com/gottsch/gottsch-minecraft-EnemyEchelons/1.18.2-main/update.json"
 
 # A URL for the "homepage" for this mod, displayed in the mod UI
 displayURL="https://www.curseforge.com/minecraft/mc-mods/enemy-echelons" #optional
@@ -30,7 +30,7 @@ authors="gottsch" #optional
 
 # The description text for the mod (multi line!) (#mandatory)
 description='''
-stuff
+A mod that assigns levels and attribute modifications to mobs based on the world height range that they spawn at.
 '''
 
 # A dependency - use the . to indicate dependency for a specific modid. Dependencies are optional.
