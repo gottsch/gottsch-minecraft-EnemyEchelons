@@ -55,7 +55,7 @@ public class WorldEventHandler {
 			Entity entity = event.getEntity();
 
 			if (EchelonManager.isValidEntity(entity)) {
-				EEchelons.LOGGER.info("entity joining world -> {} : {}", entity.getDisplayName().getString(), entity.getId());
+//				EEchelons.LOGGER.info("entity joining world -> {} : {}", entity.getName().getString(), entity.getId());
 				/*
 				 * if on the client, request an update from the server
 				 */

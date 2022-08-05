@@ -299,7 +299,7 @@ public class EchelonManager {
 //				Integer echelonLevel = EchelonManager.getLevel(dimension, y);
 				Integer echelonLevel = EchelonManager.getLevel(mob, y);
 
-				EEchelons.LOGGER.info("selected level -> {} for dimension -> {} @ y -> {}", echelonLevel, dimension, y);
+//				EEchelons.LOGGER.info("selected level -> {} for dimension -> {} @ y -> {}", echelonLevel, dimension, y);
 
 				/*
 				 *  apply the attribute modifications

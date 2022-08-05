@@ -27,6 +27,7 @@ import mod.gottsch.forge.eechelons.client.MouseUtil;
 import mod.gottsch.forge.eechelons.config.Config;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.ForgeHooksClient;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
@@ -51,7 +52,7 @@ public class HudEventHandler {
 	/**
 	 * Forge Bus Event Subscriber class
 	 */
-	@Mod.EventBusSubscriber(modid = EEchelons.MODID, bus = EventBusSubscriber.Bus.FORGE)
+	@Mod.EventBusSubscriber(modid = EEchelons.MODID, bus = EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
 	public static class ForgeBusSubscriber {
 		
 		@SubscribeEvent

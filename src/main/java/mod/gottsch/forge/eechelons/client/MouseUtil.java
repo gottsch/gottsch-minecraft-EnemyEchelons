@@ -53,9 +53,9 @@ public class MouseUtil {
 
 				if (entityRayTraceResult != null) {
 					Entity hoverEntity = entityRayTraceResult.getEntity();
-//					if (hoverEntity.getCapability(EEchelonsCapabilities.LEVEL_CAPABILITY).isPresent()) {
+					if (hoverEntity.getCapability(EEchelonsCapabilities.LEVEL_CAPABILITY).isPresent()) {
 						return Optional.of((LivingEntity)hoverEntity);
-//					}
+					}
 				}
 			}
 		}

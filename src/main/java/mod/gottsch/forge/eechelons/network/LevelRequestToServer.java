@@ -78,17 +78,13 @@ public class LevelRequestToServer {
 		ctx.enqueueWork(() -> {
 			ResourceKey<Level> dimension = ResourceKey.create(ResourceKey.createRegistryKey(new ResourceLocation(msg.registryName)), new ResourceLocation(msg.location));
 			ServerLevel world = ctx.getSender().server.getLevel(dimension);
-//			Entity entity = null;
-//			for (ServerLevel world :ctx.getSender().server.getAllLevels()) {
-//				entity = world.getEntity(msg.entityId);
-//				if (entity != null) break;
-//			}
+
 			if (world != null) {
 				Entity entity = world.getEntity(msg.entityId);
-				EEchelons.LOGGER.info("handling client message to entity -> {} : {}", entity.getDisplayName().getString(), entity.getId());
+//				EEchelons.LOGGER.info("handling client message to entity -> {} : {}", entity.getName().getString(), entity.getId());
 				entity.getCapability(EEchelonsCapabilities.LEVEL_CAPABILITY).ifPresent(cap -> {
-					EEchelons.LOGGER.info("entity {} has cap", entity.getId());
-					// TODO send the level back to the client
+//					EEchelons.LOGGER.info("entity {} has cap", entity.getId());
+					// send the level back to the client
 					LevelMessageToClient message = new LevelMessageToClient(entity.getId(), cap.getLevel());
 					EEchelonsNetwork.CHANNEL.send(PacketDistributor.TRACKING_ENTITY.with(() -> entity), message);
 				});
