@@ -9,7 +9,7 @@ An echelon is made of all the mob attribute modifiers for a custom defined set o
 For more info and examples, see the [Echelons wiki page](https://github.com/gottsch/gottsch-minecraft-EnemyEchelons/wiki).
 
 ## Levels
-A level is assigned to a mob at spawn and this level determines that amount of modification to its attributes (health, damage, speed, etc).
+A level is assigned to a mob at spawn and this level determines that amount of modification to its attributes (health, damage, speed, etc). A mob with `Level 0` indicates a vanilla mob that has been unchanged. For every level, a mob will have its attrbiutes adjusted by the `factor` or `increment` settings in the echelons configuration.
 
 ## Echelon Configuration
 Enemy Echelons is very configurable, allowing you to add as few or as many levels as you wish and to setup their respective attribute modifiers.
