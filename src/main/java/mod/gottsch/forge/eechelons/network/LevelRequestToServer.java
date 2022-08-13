@@ -66,7 +66,7 @@ public class LevelRequestToServer {
 	}
 	
 	public static void handle(LevelRequestToServer msg, Supplier<NetworkEvent.Context> context) {
-		EEchelons.LOGGER.info("received request message -> {}", msg);
+		EEchelons.LOGGER.debug("received request message -> {}", msg);
 		NetworkEvent.Context ctx = context.get();
 		LogicalSide sideReceived = ctx.getDirection().getReceptionSide();
 
