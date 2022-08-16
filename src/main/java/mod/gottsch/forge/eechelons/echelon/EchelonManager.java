@@ -22,7 +22,6 @@ package mod.gottsch.forge.eechelons.echelon;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -35,13 +34,13 @@ import mod.gottsch.forge.eechelons.bst.IntervalTree;
 import mod.gottsch.forge.eechelons.capability.EEchelonsCapabilities;
 import mod.gottsch.forge.eechelons.config.Config;
 import mod.gottsch.forge.eechelons.config.EchelonsHolder.Echelon;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.monster.Enemy;
-import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.MobEntity;
+import net.minecraft.entity.ai.attributes.Attributes;
+import net.minecraft.entity.monster.IMob;
+import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 
 /**
  * 
@@ -49,8 +48,9 @@ import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
  *
  */
 public class EchelonManager {
-	// f_21364_ => xpReward
-	private static final String XP_REWARD_FIELDNAME = "f_21364_";
+	// field_70728_aV => xpReward (1.16.5)
+	// f_21364_ => xpReward (1.18.2)
+	private static final String XP_REWARD_FIELDNAME = "field_70728_aV";
 	private static final ResourceLocation ALL_DIMENSION = new ResourceLocation(".", ".");
 
 	/*
@@ -82,11 +82,12 @@ public class EchelonManager {
 		HISTOGRAM_TREES_BY_MOB.clear();
 		
 		List<Echelon> echelons = Config.echelons;
-		if (ObjectUtils.isEmpty(echelons)) {
+//		EEchelons.LOGGER.info("config echelons -> {}", echelons);
+		if (echelons == null || echelons.isEmpty()) {
 			return;
 		}
 		echelons.forEach(echelon -> {
-			if (ObjectUtils.isEmpty(echelon.getStratum())) {
+			if (echelon.getStratum() == null || echelon.getStratum().isEmpty()) {
 				return;
 			}
 			/*
@@ -108,7 +109,7 @@ public class EchelonManager {
 			});
 			
 			// TODO refactor to not duplicate code
-			if (ObjectUtils.isEmpty(echelon.getDimensions())) {
+			if (echelon.getDimensions() == null || echelon.getDimensions().isEmpty()) {
 				if (!echelon.getMobWhitelist().isEmpty()) {
 					echelon.getMobWhitelist().forEach(mob -> {
 						// create a key pair
@@ -156,8 +157,8 @@ public class EchelonManager {
 	 * @param entity
 	 * @return
 	 */
-	public static Echelon getEchelon(Mob mob) {
-		Pair<ResourceLocation, ResourceLocation> keyPair = new ImmutablePair<>(mob.getLevel().dimension().location(), mob.getType().getRegistryName());
+	public static Echelon getEchelon(MobEntity mob) {
+		Pair<ResourceLocation, ResourceLocation> keyPair = new ImmutablePair<>(mob.level.dimension().location(), mob.getType().getRegistryName());
 		if (ECHELONS_BY_MOB.containsKey(keyPair)) {
 			return ECHELONS_BY_MOB.get(keyPair);
 		}
@@ -191,13 +192,13 @@ public class EchelonManager {
 		return null;
 	}
 	
-	public static Integer getLevel(Mob mob, Integer searchValue) {
+	public static Integer getLevel(MobEntity mob, Integer searchValue) {
 		Integer result = 0;
 		
 		IntervalTree<WeightedCollection<Double, Integer>> tree = null;
 		
 		// first check the histograms by mob map
-		Pair<ResourceLocation, ResourceLocation> keyPair = new ImmutablePair<>(mob.getLevel().dimension().location(), mob.getType().getRegistryName());
+		Pair<ResourceLocation, ResourceLocation> keyPair = new ImmutablePair<>(mob.level.dimension().location(), mob.getType().getRegistryName());
 		if (HISTOGRAM_TREES_BY_MOB.containsKey(keyPair)) {
 			tree = HISTOGRAM_TREES_BY_MOB.get(keyPair);
 			result = getLevel(tree, searchValue);
@@ -209,7 +210,7 @@ public class EchelonManager {
 				result = getLevel(tree, searchValue);
 			}
 			else {
-				result = getLevel(mob.getLevel().dimension().location(), searchValue);
+				result = getLevel(mob.level.dimension().location(), searchValue);
 			}
 		}
 
@@ -243,13 +244,13 @@ public class EchelonManager {
 		List<Interval<WeightedCollection<Double, Integer>>> stratum = tree
 				.getOverlapping(tree.getRoot(), new Interval<>(searchValue, searchValue), false);
 		
-		if (ObjectUtils.isEmpty(stratum)) {
+		if (stratum == null || stratum.isEmpty()) {
 			return 0;
 		}
 		
 		// get the first element/strata - there should only be one.
 		WeightedCollection<Double, Integer> col = stratum.get(0).getData();
-		if (ObjectUtils.isEmpty(col)) {
+		if (col == null) {
 			return 0;
 		}
 		// get the next weighted random integer
@@ -264,7 +265,7 @@ public class EchelonManager {
 	 * @return
 	 */
 	public static boolean isValidEntity(final Entity entity) {
-		return entity instanceof LivingEntity && entity instanceof Enemy;
+		return entity instanceof LivingEntity && entity instanceof IMob;
 	}
 	
 	/**
@@ -287,16 +288,15 @@ public class EchelonManager {
 	 * 
 	 * @param mob
 	 */
-	public static void applyModications(Mob mob) {
+	public static void applyModications(MobEntity mob) {
 		mob.getCapability(EEchelonsCapabilities.LEVEL_CAPABILITY).ifPresent(cap -> {
 			
 			if (cap.getLevel() < 0) {
 				// determine dimension
-				ResourceLocation dimension = mob.getLevel().dimension().location();
+				ResourceLocation dimension = mob.level.dimension().location();
 				// determine the altitute (y-value)
-				int y = mob.getBlockY();
+				int y = mob.blockPosition().getY();
 
-//				Integer echelonLevel = EchelonManager.getLevel(dimension, y);
 				Integer echelonLevel = EchelonManager.getLevel(mob, y);
 
 //				EEchelons.LOGGER.info("selected level -> {} for dimension -> {} @ y -> {}", echelonLevel, dimension, y);
@@ -304,9 +304,8 @@ public class EchelonManager {
 				/*
 				 *  apply the attribute modifications
 				 */
-//				Echelon echelon = getEchelon(dimension);
 				Echelon echelon = getEchelon(mob);
-				
+//				EEchelons.LOGGER.info("selected echelon -> {}", echelon);
 				if (echelon == null) {
 					cap.setLevel(0);
 					return;
@@ -342,7 +341,7 @@ public class EchelonManager {
 		});
 	}
 	
-	private static void modifySpeed(Mob mob, Integer level, Echelon echelon) {
+	private static void modifySpeed(MobEntity mob, Integer level, Echelon echelon) {
 		if (echelon.hasSpeedFactor()) {
 			double speed = 1.0 + (echelon.getSpeedFactor() * level);
 			double newSpeed = mob.getAttribute(Attributes.MOVEMENT_SPEED).getBaseValue() * speed;
@@ -355,19 +354,19 @@ public class EchelonManager {
 		}
 	}
 
-	private static void modifyXp(Mob mob, Integer level, Echelon echelon) {
+	private static void modifyXp(MobEntity mob, Integer level, Echelon echelon) {
 		if (echelon.hasXpFactor()) {
 			double xp = 1.0 + (echelon.getXpFactor() * level);
-			int xpReward = (int)ObfuscationReflectionHelper.getPrivateValue(Mob.class, mob, XP_REWARD_FIELDNAME);
+			int xpReward = (int)ObfuscationReflectionHelper.getPrivateValue(MobEntity.class, mob, XP_REWARD_FIELDNAME);
 			double newXpReward = xpReward * xp;
 			if (echelon.getMaxXp() != null) {
 				newXpReward = Math.min(newXpReward, echelon.getMaxXp());
 			}
-			ObfuscationReflectionHelper.setPrivateValue(Mob.class, mob, (int)newXpReward, XP_REWARD_FIELDNAME);
+			ObfuscationReflectionHelper.setPrivateValue(MobEntity.class, mob, (int)newXpReward, XP_REWARD_FIELDNAME);
 		}
 	}
 
-	private static void modifyHealth(Mob mob, int level, Echelon echelon) {
+	private static void modifyHealth(MobEntity mob, int level, Echelon echelon) {
 		if (echelon.hasHpFactor()) {
 			double health = 1.0 + (echelon.getHpFactor() * level);
 			double newHealth = mob.getMaxHealth() * health;
@@ -380,7 +379,7 @@ public class EchelonManager {
 		}
 	}
 	
-	private static void modifyDamage(Mob mob, int level, Echelon echelon) {
+	private static void modifyDamage(MobEntity mob, int level, Echelon echelon) {
 		if (echelon.hasDamageFactor()) {
 			double damage = 1.0 + (echelon.getDamageFactor() * level);
 			double newDamage = mob.getAttribute(Attributes.ATTACK_DAMAGE).getBaseValue() * damage;
@@ -392,7 +391,7 @@ public class EchelonManager {
 		}
 	}
 	
-	private static void modifyArmor(Mob mob, Integer level, Echelon echelon) {
+	private static void modifyArmor(MobEntity mob, Integer level, Echelon echelon) {
 		if (echelon.hasArmorFactor()) {
 		double armor = 1.0 + (echelon.getArmorFactor() * level);
 		double newArmor = mob.getAttribute(Attributes.ARMOR).getBaseValue() * armor;
@@ -404,7 +403,7 @@ public class EchelonManager {
 		}
 	}
 	
-	private static void modifyArmorToughness(Mob mob, Integer level, Echelon echelon) {
+	private static void modifyArmorToughness(MobEntity mob, Integer level, Echelon echelon) {
 		if (echelon.hasArmorToughnessFactor()) {
 		double armor = 1.0 + (echelon.getArmorToughnessFactor() * level);
 		double newArmor = mob.getAttribute(Attributes.ARMOR_TOUGHNESS).getBaseValue() * armor;
@@ -416,7 +415,7 @@ public class EchelonManager {
 		}
 	}
 	
-	private static void modifyKnockback(Mob mob, int level, Echelon echelon) {
+	private static void modifyKnockback(MobEntity mob, int level, Echelon echelon) {
 		if (echelon.hasKnockbackIncrement()) {
 			double knockback = echelon.getKnockbackIncrement() * level;
 			double newKnockback = mob.getAttribute(Attributes.ATTACK_KNOCKBACK).getBaseValue() + knockback;
@@ -428,7 +427,7 @@ public class EchelonManager {
 		}
 	}
 	
-	private static void modifyKnockbackResist(Mob mob, int level, Echelon echelon) {
+	private static void modifyKnockbackResist(MobEntity mob, int level, Echelon echelon) {
 		if (echelon.hasKnockbackResistIncrement()) {
 			double knockback = echelon.getKnockbackResistIncrement() * level;
 			double newKnockback = mob.getAttribute(Attributes.KNOCKBACK_RESISTANCE).getBaseValue() + knockback;

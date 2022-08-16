@@ -24,11 +24,11 @@ import java.util.function.Supplier;
 import mod.gottsch.forge.eechelons.EEchelons;
 import mod.gottsch.forge.eechelons.capability.EEchelonsCapabilities;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.world.entity.Entity;
+import net.minecraft.client.world.ClientWorld;
+import net.minecraft.entity.Entity;
+import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.fml.LogicalSide;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraftforge.fml.network.NetworkEvent;
 
 /**
  * 
@@ -44,19 +44,19 @@ public class LevelMessageToClient {
 		this.level = level;
 	}
 	
-	public static void encode(LevelMessageToClient msg, FriendlyByteBuf buf) {
+	public static void encode(LevelMessageToClient msg, PacketBuffer buf) {
 		buf.writeInt(msg.entityId);
 		buf.writeInt(msg.level);
 	}
 	
-	public static LevelMessageToClient decode(FriendlyByteBuf buf) {
+	public static LevelMessageToClient decode(PacketBuffer buf) {
 		int entityId = buf.readInt();
 		int level = buf.readInt();
 	    return new LevelMessageToClient(entityId, level);
 	}
 	
 	public static void handle(LevelMessageToClient msg, Supplier<NetworkEvent.Context> context) {
-//		EEchelons.LOGGER.info("received message -> {}", msg);
+//		EEchelons.LOGGER.info("received client message -> {}", msg);
 		NetworkEvent.Context ctx = context.get();
 		LogicalSide sideReceived = ctx.getDirection().getReceptionSide();
 
@@ -66,7 +66,7 @@ public class LevelMessageToClient {
 		}
 		
 		context.get().enqueueWork(() -> {
-			ClientLevel world = Minecraft.getInstance().level;
+			ClientWorld world = Minecraft.getInstance().level;
 			if (world != null) {
 				Entity entity = world.getEntity(msg.entityId);
 //				EEchelons.LOGGER.info("handling client message to entity -> {} for level -> {}", entity.getName().getString(), msg.level);

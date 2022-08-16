@@ -21,14 +21,10 @@ package mod.gottsch.forge.eechelons.capability;
 import mod.gottsch.forge.eechelons.EEchelons;
 import mod.gottsch.forge.eechelons.echelon.EchelonManager;
 import mod.gottsch.forge.eechelons.integration.ChampionsIntegration;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.monster.Enemy;
+import net.minecraft.entity.Entity;
 import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.capabilities.CapabilityInject;
 import net.minecraftforge.common.capabilities.CapabilityManager;
-import net.minecraftforge.common.capabilities.CapabilityToken;
-import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -43,14 +39,14 @@ import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus;
 @Mod.EventBusSubscriber(modid = EEchelons.MODID, bus = Bus.MOD)
 public class EEchelonsCapabilities {
 
-	public static Capability<ILevelHandler> LEVEL_CAPABILITY = CapabilityManager.get(new CapabilityToken<>() {	});
+	@CapabilityInject(ILevelHandler.class)
+	public static final Capability<ILevelHandler> LEVEL_CAPABILITY = null;
 
 	/**
 	 * 
 	 */
-	@SubscribeEvent
-	public static void register(final RegisterCapabilitiesEvent event) {
-		LevelCapability.register(event);
+	public static void register() {
+		LevelCapability.register();
 	}
 
 	/**

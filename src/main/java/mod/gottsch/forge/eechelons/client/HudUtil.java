@@ -19,8 +19,8 @@ package mod.gottsch.forge.eechelons.client;
 
 import java.awt.Color;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 
 import mod.gottsch.forge.eechelons.EEchelons;
 import mod.gottsch.forge.eechelons.capability.EEchelonsCapabilities;
@@ -29,10 +29,10 @@ import mod.gottsch.forge.eechelons.event.HudEventHandler;
 import mod.gottsch.forge.eechelons.integration.ChampionsIntegration;
 import mod.gottsch.forge.eechelons.integration.WailaIntegration;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiComponent;
+import net.minecraft.client.gui.AbstractGui;
 import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.util.ResourceLocation;
 
 /**
  * This class was derived from Champions by TheIllusiveC4
@@ -45,8 +45,8 @@ public class HudUtil {
 	
 	private static final int HUD_OFFSET_WIDTH = 32;
 	private static final int HUD_OFFSET_HEIGHT = 4;
-	private static final ResourceLocation HUD_BG = new ResourceLocation(EEchelons.MODID, "textures/gui/echelon_hud_bg.png");
-	private static final ResourceLocation HUD_DARK_BG = new ResourceLocation(EEchelons.MODID, "textures/gui/echelon_hud_dark_bg.png");
+	public static final ResourceLocation HUD_BG = new ResourceLocation(EEchelons.MODID, "textures/gui/echelon_hud_bg.png");
+	public static final ResourceLocation HUD_DARK_BG = new ResourceLocation(EEchelons.MODID, "textures/gui/echelon_hud_dark_bg.png");
 	
 	/**
 	 * 
@@ -54,7 +54,7 @@ public class HudUtil {
 	 * @param livingEntity
 	 * @return
 	 */
-	public static boolean renderLevelBar(PoseStack matrixStack, final LivingEntity livingEntity) {
+	public static boolean renderLevelBar(MatrixStack matrixStack, final LivingEntity livingEntity) {
 
 		int level = livingEntity.getCapability(EEchelonsCapabilities.LEVEL_CAPABILITY).map(cap -> cap.getLevel()).orElse(0);
 
@@ -69,10 +69,9 @@ public class HudUtil {
 			int yOffset = Config.CLIENT.hudYOffset.get();
 
 			RenderSystem.defaultBlendFunc();
-			RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+			RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
 			RenderSystem.enableBlend();
-			RenderSystem.setShader(GameRenderer::getPositionTexShader);
-			RenderSystem.setShaderTexture(0, Config.CLIENT.useDarkHud.get() ? HUD_DARK_BG : HUD_BG); // GUI_BAR_TEXTURES);
+			client.getTextureManager().bind(Config.CLIENT.useDarkHud.get() ? HUD_DARK_BG : HUD_BG);
 
 			/*
 			 * only recalc offsets for integration if the config offsets are still default values
@@ -93,14 +92,14 @@ public class HudUtil {
 			HudEventHandler.startY = yOffset + 1 + integrationYOffset;
 
 			// 0 = startx, 0 = starty, 64 = endx, 20 = endy, 64 = width of image, 20 = height of image
-			GuiComponent.blit(matrixStack, xOffset + k + integrationXOffset, yOffset + j + integrationYOffset, 0, 0, 64, 20, 64, 20);
+			AbstractGui.blit(matrixStack, xOffset + k + integrationXOffset, yOffset + j + integrationYOffset, 0, 0, 64, 20, 64, 20);
 
 			// display the level text
 			String text = "Level " + level;
 			client.font.drawShadow(matrixStack, text,
 					xOffset + (float) (i / 2 - client.font.width(text) / 2) + integrationXOffset,
 					yOffset + (float) (j  + client.font.lineHeight - 3) + integrationYOffset, Color.WHITE.getRGB());
-			RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+			RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
 
 			RenderSystem.disableBlend();
 		}

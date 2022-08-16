@@ -18,7 +18,7 @@
 package mod.gottsch.forge.eechelons.integration;
 
 import mod.gottsch.forge.eechelons.config.Config;
-import net.minecraft.world.entity.Entity;
+import net.minecraft.entity.Entity;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.fml.ModList;
 import top.theillusivec4.champions.common.capability.ChampionCapability;

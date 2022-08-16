@@ -18,12 +18,14 @@
 package mod.gottsch.forge.eechelons.capability;
 
 import mod.gottsch.forge.eechelons.EEchelons;
-import net.minecraft.core.Direction;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.INBT;
+import net.minecraft.util.Direction;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.capabilities.Capability.IStorage;
+import net.minecraftforge.common.capabilities.CapabilityManager;
 import net.minecraftforge.common.capabilities.ICapabilitySerializable;
-import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
 import net.minecraftforge.common.util.LazyOptional;
 
 /**
@@ -31,45 +33,60 @@ import net.minecraftforge.common.util.LazyOptional;
  * @author Mark Gottschling on Jul 24, 2022
  *
  */
-public class LevelCapability implements ICapabilitySerializable<CompoundTag> {
+public class LevelCapability implements ICapabilitySerializable<CompoundNBT> {
 	public static final ResourceLocation ID = new ResourceLocation(EEchelons.MODID, "level");
 	
-	// reference of handler/data for easy access
-	private final LevelHandler handler = new LevelHandler();
 	// holder of the handler/data
-	private final LazyOptional<ILevelHandler> optional = LazyOptional
-			.of(() -> handler);
-	
+	private final LazyOptional<ILevelHandler> handler = LazyOptional
+			.of(EEchelonsCapabilities.LEVEL_CAPABILITY::getDefaultInstance);
+
 	@Override
 	public <T> LazyOptional<T> getCapability(Capability<T> cap, Direction side) {
 		if (cap == EEchelonsCapabilities.LEVEL_CAPABILITY) {
-			return optional.cast();
+			return handler.cast();
 		}
 		return LazyOptional.empty();
 	}
 
 	@Override
-	public CompoundTag serializeNBT() {
-		return (CompoundTag)handler.serializeNBT();
-//		CompoundTag tag = new CompoundTag();
-//		tag.putInt("level", handler.getLevel());
-//		return tag;
+	public CompoundNBT serializeNBT() {
+		return (CompoundNBT)EEchelonsCapabilities.LEVEL_CAPABILITY.getStorage().writeNBT(EEchelonsCapabilities.LEVEL_CAPABILITY,
+				handler.orElseThrow(() -> new IllegalArgumentException("at serialize")), null);
 	}
 
 	@Override
-	public void deserializeNBT(CompoundTag tag) {
-		handler.deserializeNBT(tag);
-//		if (tag.contains("level")) {
-//			handler.setLevel(tag.getInt("level"));
-//		}		
+	public void deserializeNBT(CompoundNBT nbt) {
+		EEchelonsCapabilities.LEVEL_CAPABILITY.getStorage().readNBT(EEchelonsCapabilities.LEVEL_CAPABILITY,
+				handler.orElseThrow(() -> new IllegalArgumentException("at deserialize")), null, nbt);
+
 	}
 
 	/**
 	 * 
-	 * @param event
 	 */
-	public static void register(RegisterCapabilitiesEvent event) {
-		event.register(ILevelHandler.class);
-	}
+	public static void register() {
+		CapabilityManager.INSTANCE.register(ILevelHandler.class, new IStorage<ILevelHandler>() {
 
+			@Override
+			public INBT writeNBT(Capability<ILevelHandler> capability, ILevelHandler instance, Direction side) {
+				CompoundNBT tag = new CompoundNBT();
+				tag.putInt("level", instance.getLevel());
+				return tag;
+			}
+
+			@Override
+			public void readNBT(Capability<ILevelHandler> capability, ILevelHandler instance, Direction side,
+					INBT nbt) {
+				if (nbt instanceof CompoundNBT) {
+					CompoundNBT tag = (CompoundNBT)nbt;
+					if (tag.contains("level")) {
+						instance.setLevel(tag.getInt("level"));
+					}
+					else {
+						instance.setLevel(-1);
+					}
+				}
+			}
+		}, LevelHandler::new);
+	}
 }

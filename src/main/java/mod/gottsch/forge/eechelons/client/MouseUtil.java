@@ -19,17 +19,16 @@ package mod.gottsch.forge.eechelons.client;
 
 import java.util.Optional;
 
-import mod.gottsch.forge.eechelons.EEchelons;
 import mod.gottsch.forge.eechelons.capability.EEchelonsCapabilities;
 import mod.gottsch.forge.eechelons.config.Config;
 import net.minecraft.client.Minecraft;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.projectile.ProjectileUtil;
-import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.EntityHitResult;
-import net.minecraft.world.phys.HitResult;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.projectile.ProjectileHelper;
+import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.EntityRayTraceResult;
+import net.minecraft.util.math.RayTraceResult;
+import net.minecraft.util.math.vector.Vector3d;
 
 /**
  * This class was derived from Champions by TheIllusiveC4
@@ -42,14 +41,14 @@ public class MouseUtil {
 		if (entity != null) {
 			if (mc.level != null) {
 				double range = Config.CLIENT.hudRange.get();
-				HitResult rayTraceResult = entity.pick(range, partialTicks, false);
-				Vec3 vec3d = entity.getEyePosition(partialTicks);
+				RayTraceResult rayTraceResult = entity.pick(range, partialTicks, false);
+				Vector3d vec3d = entity.getEyePosition(partialTicks);
 				double distance = rayTraceResult.getLocation().distanceToSqr(vec3d);
-				Vec3 viewVector = entity.getViewVector(1.0F);
-				Vec3 vec3d2 = vec3d.add(viewVector.x * range, viewVector.y * range, viewVector.z * range);
-				AABB aabb = entity.getBoundingBox().expandTowards(viewVector.scale(range)).inflate(1.0D, 1.0D, 1.0D);
-				EntityHitResult entityRayTraceResult =
-						ProjectileUtil.getEntityHitResult(entity, vec3d, vec3d2, aabb, (e) -> !e.isSpectator() && e.isPickable(), distance);
+				Vector3d viewVector = entity.getViewVector(1.0F);
+				Vector3d vec3d2 = vec3d.add(viewVector.x * range, viewVector.y * range, viewVector.z * range);
+				AxisAlignedBB aabb = entity.getBoundingBox().expandTowards(viewVector.scale(range)).inflate(1.0D, 1.0D, 1.0D);
+				EntityRayTraceResult entityRayTraceResult =
+						ProjectileHelper.getEntityHitResult(entity, vec3d, vec3d2, aabb, (e) -> !e.isSpectator() && e.isPickable(), distance);
 
 				if (entityRayTraceResult != null) {
 					Entity hoverEntity = entityRayTraceResult.getEntity();

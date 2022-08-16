@@ -20,6 +20,7 @@
 package mod.gottsch.forge.eechelons.setup;
 
 import mod.gottsch.forge.eechelons.EEchelons;
+import mod.gottsch.forge.eechelons.capability.EEchelonsCapabilities;
 import mod.gottsch.forge.eechelons.integration.ChampionsIntegration;
 import mod.gottsch.forge.eechelons.integration.WailaIntegration;
 import mod.gottsch.forge.eechelons.network.EEchelonsNetwork;
@@ -35,6 +36,7 @@ import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 public class CommonSetup {
 
 	public static void init(final FMLCommonSetupEvent event) {
+		EEchelonsCapabilities.register();
 		EEchelonsNetwork.register();
 		ChampionsIntegration.init();
 		WailaIntegration.init();

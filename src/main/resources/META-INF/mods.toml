@@ -1,6 +1,6 @@
 modLoader="javafml"
 # mandatory This is typically bumped every Minecraft version by Forge. See our download page for lists of versions.
-loaderVersion="[40,)" 
+loaderVersion="[36,)" 
 # License
 license="GNU GPL v3"
 
@@ -14,7 +14,7 @@ version="1.0.1" #mandatory
 displayName="Enemy Echelons" #mandatory
 
 # A URL to query for updates for this mod. See the JSON update specification https://mcforge.readthedocs.io/en/latest/gettingstarted/autoupdate/
-updateJSONURL="https://raw.githubusercontent.com/gottsch/gottsch-minecraft-EnemyEchelons/1.18.2-main/update.json"
+updateJSONURL="https://raw.githubusercontent.com/gottsch/gottsch-minecraft-EnemyEchelons/1.16.5-main/update.json"
 
 # A URL for the "homepage" for this mod, displayed in the mod UI
 displayURL="https://www.curseforge.com/minecraft/mc-mods/enemy-echelons" #optional
@@ -40,7 +40,7 @@ A mod that assigns levels and attribute modifications to mobs based on the world
     # Does this dependency have to exist - if not, ordering below must be specified
     mandatory=true #mandatory
     # The version range of the dependency
-    versionRange="[40,)" #mandatory
+    versionRange="[36,)" #mandatory
     # An ordering relationship for the dependency - BEFORE or AFTER required if the relationship is not mandatory
     ordering="NONE"
     # Side this dependency is applied on - BOTH, CLIENT or SERVER
@@ -50,13 +50,13 @@ A mod that assigns levels and attribute modifications to mobs based on the world
     modId="minecraft"
     mandatory=true
 # This version range declares a minimum of the current minecraft version up to but not including the next major version
-    versionRange="[1.18.2,1.19)"
+    versionRange="[1.16.5,1.17)"
     ordering="NONE"
     side="BOTH"
 [[dependencies.eechelons]]
     modId="gottschcore"
     mandatory=true
 # This version range declares a minimum of the current minecraft version up to but not including the next major version
-    versionRange="[1.7.0,]"
+    versionRange="[1.6.0,]"
     ordering="BEFORE"
     side="BOTH"

@@ -19,18 +19,18 @@ package mod.gottsch.forge.eechelons.event;
 
 import java.util.Optional;
 
-import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.matrix.MatrixStack;
 
 import mod.gottsch.forge.eechelons.EEchelons;
 import mod.gottsch.forge.eechelons.client.HudUtil;
 import mod.gottsch.forge.eechelons.client.MouseUtil;
 import mod.gottsch.forge.eechelons.config.Config;
 import net.minecraft.client.Minecraft;
-import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.entity.LivingEntity;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.ForgeHooksClient;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
@@ -57,28 +57,22 @@ public class HudEventHandler {
 		
 		@SubscribeEvent
 		public static void renderHealthHud(final RenderGameOverlayEvent.BossInfo.Pre evt) {
-			if (Config.SERVER.showHud.get()) {
-				Minecraft mc = Minecraft.getInstance();
-				Optional<LivingEntity> livingEntity = MouseUtil.getMouseOverEchelonMob(mc, evt.getPartialTicks());
-				livingEntity.ifPresent(entity -> {
-					PoseStack matrixStack = evt.getMatrixStack();
 
-					if (HudUtil.renderLevelBar(matrixStack, entity)) {
-						isRendering = true;
+		    if (evt.getType() == ElementType.BOSSHEALTH && Config.SERVER.showHud.get()) {
+		        Minecraft mc = Minecraft.getInstance();
+		        Optional<LivingEntity> livingEntity =
+		            MouseUtil.getMouseOverEchelonMob(mc, evt.getPartialTicks());
+		        livingEntity.ifPresent(entity -> {
+		          MatrixStack matrixStack = evt.getMatrixStack();
 
-						if (evt.getType() == ElementType.BOSSINFO) {
-							evt.setCanceled(true);
-							ForgeHooksClient.renderBossEventPost(matrixStack, mc.getWindow());
-						}
-					} else {
-						isRendering = false;
-					}
-				});
-
-				if (livingEntity.isEmpty()) {
-					isRendering = false;
-				}
-			}
+		          if (HudUtil.renderLevelBar(matrixStack, entity)) {
+		            evt.setCanceled(true);
+		            MinecraftForge.EVENT_BUS.post(new RenderGameOverlayEvent.Post(matrixStack,
+		                new RenderGameOverlayEvent(matrixStack, evt.getPartialTicks(), mc.getWindow()),
+		                ElementType.BOSSHEALTH));
+		          }
+		        });
+		      }
 		}
 	}
 }

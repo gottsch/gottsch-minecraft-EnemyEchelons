@@ -6,8 +6,8 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import mod.gottsch.forge.eechelons.EEchelons;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.Tag;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.INBT;
 import net.minecraftforge.common.util.INBTSerializable;
 
 /**
@@ -16,7 +16,7 @@ import net.minecraftforge.common.util.INBTSerializable;
  *
  * @param <D>
  */
-public class DataIntervalTree<D extends INBTSerializable<Tag>> {
+public class DataIntervalTree<D extends INBTSerializable<INBT>> {
 	private DataInterval<D> root;
 	private Supplier<D> dataSupplier;
 	
@@ -212,7 +212,7 @@ public class DataIntervalTree<D extends INBTSerializable<Tag>> {
 	 * @param interval
 	 * @return
 	 */
-	public synchronized CompoundTag save(CompoundTag nbt) {
+	public synchronized CompoundNBT save(CompoundNBT nbt) {
 		if (getRoot() == null) {
 			return nbt;
 		}
@@ -224,7 +224,7 @@ public class DataIntervalTree<D extends INBTSerializable<Tag>> {
 	 * 
 	 * @param nbt
 	 */
-	public synchronized void load(CompoundTag nbt) {
+	public synchronized void load(CompoundNBT nbt) {
 		DataInterval<D> root = new DataInterval<>(dataSupplier);
 		root.load(nbt);
 		if (!root.equals(DataInterval.EMPTY)) {

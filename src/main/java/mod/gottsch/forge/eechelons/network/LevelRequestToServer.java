@@ -23,18 +23,15 @@ import java.util.function.Supplier;
 
 import mod.gottsch.forge.eechelons.EEchelons;
 import mod.gottsch.forge.eechelons.capability.EEchelonsCapabilities;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerEntity;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.level.Level;
+import net.minecraft.entity.Entity;
+import net.minecraft.network.PacketBuffer;
+import net.minecraft.util.RegistryKey;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.world.World;
+import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.fml.LogicalSide;
-import net.minecraftforge.network.NetworkEvent;
-import net.minecraftforge.network.PacketDistributor;
+import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraftforge.fml.network.PacketDistributor;
 
 /**
  * 
@@ -52,13 +49,13 @@ public class LevelRequestToServer {
 		this.location = location;
 	}
 	
-	public static void encode(LevelRequestToServer msg, FriendlyByteBuf buf) {
+	public static void encode(LevelRequestToServer msg, PacketBuffer buf) {
 		buf.writeInt(msg.entityId);
 		buf.writeUtf(msg.registryName);
 		buf.writeUtf(msg.location);
 	}
 	
-	public static LevelRequestToServer decode(FriendlyByteBuf buf) {
+	public static LevelRequestToServer decode(PacketBuffer buf) {
 		int entityId = buf.readInt();
 		String registryName = buf.readUtf();
 		String location = buf.readUtf();
@@ -66,7 +63,7 @@ public class LevelRequestToServer {
 	}
 	
 	public static void handle(LevelRequestToServer msg, Supplier<NetworkEvent.Context> context) {
-		EEchelons.LOGGER.debug("received request message -> {}", msg);
+//		EEchelons.LOGGER.debug("received request message -> {}", msg);
 		NetworkEvent.Context ctx = context.get();
 		LogicalSide sideReceived = ctx.getDirection().getReceptionSide();
 
@@ -76,12 +73,12 @@ public class LevelRequestToServer {
 		}
 
 		ctx.enqueueWork(() -> {
-			ResourceKey<Level> dimension = ResourceKey.create(ResourceKey.createRegistryKey(new ResourceLocation(msg.registryName)), new ResourceLocation(msg.location));
-			ServerLevel world = ctx.getSender().server.getLevel(dimension);
+			RegistryKey<World> dimension = RegistryKey.create(RegistryKey.createRegistryKey(new ResourceLocation(msg.registryName)), new ResourceLocation(msg.location));
+			ServerWorld world = ctx.getSender().server.getLevel(dimension);
 
 			if (world != null) {
 				Entity entity = world.getEntity(msg.entityId);
-//				EEchelons.LOGGER.info("handling client message to entity -> {} : {}", entity.getName().getString(), entity.getId());
+//				EEchelons.LOGGER.info("handling server message to entity -> {} : {}", entity.getName().getString(), entity.getId());
 				entity.getCapability(EEchelonsCapabilities.LEVEL_CAPABILITY).ifPresent(cap -> {
 //					EEchelons.LOGGER.info("entity {} has cap", entity.getId());
 					// send the level back to the client

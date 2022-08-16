@@ -17,16 +17,12 @@
  */
 package mod.gottsch.forge.eechelons.capability;
 
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.Tag;
-import net.minecraftforge.common.util.INBTSerializable;
-
 /**
  * 
  * @author Mark Gottschling on Jul 24, 2022
  *
  */
-public class LevelHandler implements ILevelHandler, INBTSerializable<Tag> {
+public class LevelHandler implements ILevelHandler {
 	private int level = -1;
 	
 	@Override
@@ -38,26 +34,4 @@ public class LevelHandler implements ILevelHandler, INBTSerializable<Tag> {
 	public void setLevel(int level) {
 		this.level = level;
 	}
-
-	@Override
-	public Tag serializeNBT() {
-		CompoundTag tag = new CompoundTag();
-		tag.putInt("level", getLevel());
-		return tag;
-	}
-
-	@Override
-	public void deserializeNBT(Tag tag) {
-		if (tag instanceof CompoundTag) {
-			CompoundTag ctag = (CompoundTag)tag;
-			if (ctag.contains("level")) {
-				setLevel(ctag.getInt("level"));
-			}
-			else {
-				setLevel(-1);
-			}
-		}
-
-	}
-
 }

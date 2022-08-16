@@ -38,13 +38,10 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.config.IConfigSpec;
+import net.minecraftforge.fml.config.ModConfig.ModConfigEvent;
 import net.minecraftforge.fml.config.ModConfig.Type;
-import net.minecraftforge.fml.event.config.ModConfigEvent;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLPaths;
 
@@ -53,7 +50,6 @@ import net.minecraftforge.fml.loading.FMLPaths;
  * loading code was derived from Champions.
  * @see <a href="https://github.com/TheIllusiveC4/Champions">Champions</a>
  * 
- * TODO rename to Enemy Echelons
  * @author Mark Gottschling on Jul 24, 2022
  *
  */
@@ -115,7 +111,7 @@ public class EEchelons {
 	private void config(final ModConfigEvent event) {
 		if (event.getConfig().getModId().equals(MODID)) {
 			if (event.getConfig().getType() == Type.SERVER) {
-				IConfigSpec<?> spec = event.getConfig().getSpec();
+				ForgeConfigSpec spec = event.getConfig().getSpec();
 				// get the toml config data
 				CommentedConfig commentedConfig = event.getConfig().getConfigData();
 

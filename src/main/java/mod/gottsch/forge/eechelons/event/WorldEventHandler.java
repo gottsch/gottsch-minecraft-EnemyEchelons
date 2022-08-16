@@ -17,16 +17,13 @@
  */
 package mod.gottsch.forge.eechelons.event;
 
-import com.someguyssoftware.gottschcore.world.WorldInfo;
-
 import mod.gottsch.forge.eechelons.EEchelons;
 import mod.gottsch.forge.eechelons.capability.EEchelonsCapabilities;
 import mod.gottsch.forge.eechelons.echelon.EchelonManager;
 import mod.gottsch.forge.eechelons.network.EEchelonsNetwork;
 import mod.gottsch.forge.eechelons.network.LevelRequestToServer;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.monster.Enemy;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.MobEntity;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -59,7 +56,7 @@ public class WorldEventHandler {
 				/*
 				 * if on the client, request an update from the server
 				 */
-				if (WorldInfo.isClientSide(event.getEntity().level)) {
+				if (event.getWorld().isClientSide) {
 					// get cap, ensure that level hasn't already been set.
 					if (entity.getCapability(EEchelonsCapabilities.LEVEL_CAPABILITY).map(cap -> cap.getLevel() == -1).orElse(false)) {
 						LevelRequestToServer message = new LevelRequestToServer(entity.getId(), entity.level.dimension().getRegistryName().toString(),
@@ -68,7 +65,7 @@ public class WorldEventHandler {
 					}
 				}
 				else {
-					Mob mob = (Mob)entity;
+					MobEntity mob = (MobEntity)entity;
 					EchelonManager.applyModications(mob);
 				}
 			}

@@ -47,7 +47,7 @@
 		# the min y-value in the strata
 		min=60
 		# the max y-value in the strata
-		max=319
+		max=255
 		# the histogram is a list of level+weight pairs. the higher the weight, the more likely the corresponding level will be selected.
 		# note: levels are integers ie. no decimals. weights are doubles, requires decimals.
 		[[echelons.stratum.histogram]]
@@ -58,7 +58,7 @@
 			level=1
 			weight=100.0
 	[[echelons.stratum]]
-		min=30
+		min=45
 		max=59
 		[[echelons.stratum.histogram]]
 			level=0
@@ -70,8 +70,8 @@
 			level=2
 			weight=100.0
 	[[echelons.stratum]]
-		min=0
-		max=29
+		min=30
+		max=44
 		[[echelons.stratum.histogram]]
 			level=0
 			weight=100.0
@@ -85,8 +85,8 @@
 			level=3
 			weight=200.0
 	[[echelons.stratum]]
-		min=-30
-		max=-1
+		min=15
+		max=29
 		[[echelons.stratum.histogram]]
 			level=1
 			weight=80.0
@@ -100,8 +100,8 @@
 			level=4
 			weight=120.0
 	[[echelons.stratum]]
-		min=-64
-		max=-31
+		min=0
+		max=14
 		[[echelons.stratum.histogram]]
 			level=2
 			weight=80.0
@@ -131,7 +131,7 @@
 			level=1
 			weight=200.0
 	[[echelons.stratum]]
-		min=0
+		min=15
 		max=29
 		[[echelons.stratum.histogram]]
 			level=0
@@ -143,8 +143,8 @@
 			level=2
 			weight=100.0
 	[[echelons.stratum]]
-		min=-64
-		max=-1
+		min=0
+		max=14
 		[[echelons.stratum.histogram]]
 			level=0
 			weight=10.0
@@ -160,8 +160,8 @@
 	dimensions=["."]
 	hpFactor=0.0
 	[[echelons.stratum]]
-		min=-64
-		max=319
+		min=0
+		max=255
 		[[echelons.stratum.histogram]]
 			level=0
 			weight=1.0
