@@ -42,28 +42,28 @@ public class LevelRequestToServer {
 	private final int entityId;
 	private final String registryName;
 	private final String location;
-	
+
 	public LevelRequestToServer(int entityId, String registryName, String location) {
 		this.entityId = entityId;
 		this.registryName = registryName;
 		this.location = location;
 	}
-	
+
 	public static void encode(LevelRequestToServer msg, PacketBuffer buf) {
 		buf.writeInt(msg.entityId);
 		buf.writeUtf(msg.registryName);
 		buf.writeUtf(msg.location);
 	}
-	
+
 	public static LevelRequestToServer decode(PacketBuffer buf) {
 		int entityId = buf.readInt();
 		String registryName = buf.readUtf();
 		String location = buf.readUtf();
-	    return new LevelRequestToServer(entityId, registryName, location);
+		return new LevelRequestToServer(entityId, registryName, location);
 	}
-	
+
 	public static void handle(LevelRequestToServer msg, Supplier<NetworkEvent.Context> context) {
-//		EEchelons.LOGGER.debug("received request message -> {}", msg);
+		EEchelons.LOGGER.debug("received request message -> {}", msg);
 		NetworkEvent.Context ctx = context.get();
 		LogicalSide sideReceived = ctx.getDirection().getReceptionSide();
 
@@ -78,14 +78,16 @@ public class LevelRequestToServer {
 
 			if (world != null) {
 				Entity entity = world.getEntity(msg.entityId);
-//				EEchelons.LOGGER.info("handling server message to entity -> {} : {}", entity.getName().getString(), entity.getId());
-				entity.getCapability(EEchelonsCapabilities.LEVEL_CAPABILITY).ifPresent(cap -> {
-//					EEchelons.LOGGER.info("entity {} has cap", entity.getId());
-					// send the level back to the client
-					LevelMessageToClient message = new LevelMessageToClient(entity.getId(), cap.getLevel());
-					EEchelonsNetwork.CHANNEL.send(PacketDistributor.TRACKING_ENTITY.with(() -> entity), message);
-				});
-			}
+				if (entity != null) {
+					EEchelons.LOGGER.debug("handling server message to entity -> {} : {}", entity.getName().getString(), entity.getId());
+					entity.getCapability(EEchelonsCapabilities.LEVEL_CAPABILITY).ifPresent(cap -> {
+						EEchelons.LOGGER.debug("entity {} has cap", entity.getId());
+						// send the level back to the client
+						LevelMessageToClient message = new LevelMessageToClient(entity.getId(), cap.getLevel());
+						EEchelonsNetwork.CHANNEL.send(PacketDistributor.TRACKING_ENTITY.with(() -> entity), message);
+					});
+				}
+			}				
 		});
 		context.get().setPacketHandled(true);
 	}
