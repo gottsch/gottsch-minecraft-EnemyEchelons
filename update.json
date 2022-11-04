@@ -1,12 +1,13 @@
 {
     "homepage": "https://minecraft.curseforge.com/projects/enemy-echelons",
     "promos": {
-    "1.18.2-latest": "1.0.2",
-    "1.18.2-recommended": "1.0.2"
+    "1.18.2-latest": "1.0.3",
+    "1.18.2-recommended": "1.0.3"
   },
     "1.18.2": {
         "1.0.0": "Initial release",
         "1.0.1": "Removed spamming log message",
-        "1.0.2": "Fixed entity not found on server bug."
+        "1.0.2": "Fixed entity not found on server bug.",
+        "1.0.3": "Added checks to ensure attributes exist for modification.\nRenamed echelons default config to include mc version else it will be shared between mc versions."
 	}
 }
