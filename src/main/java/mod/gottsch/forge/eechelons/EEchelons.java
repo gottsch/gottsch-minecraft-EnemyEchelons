@@ -59,7 +59,7 @@ public class EEchelons {
 
 	public static final String MODID = "eechelons";
 
-	private static final String ECHELONS_CONFIG_VERSION = "v1";
+	private static final String ECHELONS_CONFIG_VERSION = "1.16.5-v1";
 	/**
 	 * 
 	 */
