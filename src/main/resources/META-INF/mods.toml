@@ -10,7 +10,7 @@ issueTrackerURL="https://github.com/gottsch/gottsch-minecraft-EnemyEchelons/issu
 
 [[mods]] #mandatory
 modId="eechelons" #mandatory
-version="1.0.2" #mandatory
+version="1.0.3" #mandatory
 displayName="Enemy Echelons" #mandatory
 
 # A URL to query for updates for this mod. See the JSON update specification https://mcforge.readthedocs.io/en/latest/gettingstarted/autoupdate/
