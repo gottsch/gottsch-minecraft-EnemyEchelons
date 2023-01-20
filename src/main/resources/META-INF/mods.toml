@@ -10,7 +10,7 @@ issueTrackerURL="https://github.com/gottsch/gottsch-minecraft-EnemyEchelons/issu
 
 [[mods]] #mandatory
 modId="eechelons" #mandatory
-version="1.0.3" #mandatory
+version="1.1.0" #mandatory
 displayName="Enemy Echelons" #mandatory
 
 # A URL to query for updates for this mod. See the JSON update specification https://mcforge.readthedocs.io/en/latest/gettingstarted/autoupdate/
@@ -57,6 +57,6 @@ A mod that assigns levels and attribute modifications to mobs based on the world
     modId="gottschcore"
     mandatory=true
 # This version range declares a minimum of the current minecraft version up to but not including the next major version
-    versionRange="[1.7.0,]"
+    versionRange="[2.0.0,]"
     ordering="BEFORE"
     side="BOTH"

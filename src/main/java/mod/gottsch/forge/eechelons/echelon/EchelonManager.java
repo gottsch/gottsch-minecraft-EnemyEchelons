@@ -1,6 +1,6 @@
 /*
  * This file is part of  Enemy Echelons.
- * Copyright (c) 2022, Mark Gottschling (gottsch)
+ * Copyright (c) 2022 Mark Gottschling (gottsch)
  * 
  * All rights reserved.
  *
@@ -27,7 +27,6 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
 import com.google.common.collect.Maps;
-import com.someguyssoftware.gottschcore.random.WeightedCollection;
 
 import mod.gottsch.forge.eechelons.EEchelons;
 import mod.gottsch.forge.eechelons.bst.Interval;
@@ -35,6 +34,7 @@ import mod.gottsch.forge.eechelons.bst.IntervalTree;
 import mod.gottsch.forge.eechelons.capability.EEchelonsCapabilities;
 import mod.gottsch.forge.eechelons.config.Config;
 import mod.gottsch.forge.eechelons.config.EchelonsHolder.Echelon;
+import mod.gottsch.forge.gottschcore.random.WeightedCollection;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -301,7 +301,7 @@ public class EchelonManager {
 				//				Integer echelonLevel = EchelonManager.getLevel(dimension, y);
 				Integer echelonLevel = EchelonManager.getLevel(mob, y);
 
-				//				EEchelons.LOGGER.info("selected level -> {} for dimension -> {} @ y -> {}", echelonLevel, dimension, y);
+				//				EEchelons.LOGGER.debug("selected level -> {} for dimension -> {} @ y -> {}", echelonLevel, dimension, y);
 
 				/*
 				 *  apply the attribute modifications
@@ -355,7 +355,7 @@ public class EchelonManager {
 					newSpeed = Math.min(newSpeed, echelon.getMaxSpeed());
 				}
 				attribute.setBaseValue(newSpeed);
-				//			EEchelons.LOGGER.info("mob new speed -> {}", mob.getAttributeValue(Attributes.MOVEMENT_SPEED));
+				//			EEchelons.LOGGER.debug("mob new speed -> {}", mob.getAttributeValue(Attributes.MOVEMENT_SPEED));
 			}	
 		}
 	}
@@ -387,7 +387,7 @@ public class EchelonManager {
 				}
 				attribute.setBaseValue(newHealth);
 				mob.setHealth(mob.getMaxHealth());
-				//			EEchelons.LOGGER.info("mob new health -> {}", mob.getMaxHealth());
+//				EEchelons.LOGGER.debug("mob new health -> {}", mob.getMaxHealth());
 			}
 		}
 	}
@@ -402,7 +402,7 @@ public class EchelonManager {
 					newDamage = Math.min(newDamage, echelon.getMaxDamage());
 				}
 				attribute.setBaseValue(newDamage);
-				EEchelons.LOGGER.info("mob new damage -> {}", mob.getAttributeValue(Attributes.ATTACK_DAMAGE));
+//				EEchelons.LOGGER.debug("mob new damage -> {}", mob.getAttributeValue(Attributes.ATTACK_DAMAGE));
 			}
 		}
 	}
@@ -417,7 +417,7 @@ public class EchelonManager {
 					newArmor = Math.min(newArmor, echelon.getMaxArmor());
 				}
 				attribute.setBaseValue(newArmor);
-				//		EEchelons.LOGGER.info("mob new armor -> {}", mob.getAttributeValue(Attributes.ARMOR));
+				//		EEchelons.LOGGER.debug("mob new armor -> {}", mob.getAttributeValue(Attributes.ARMOR));
 			}
 		}
 	}
@@ -432,7 +432,7 @@ public class EchelonManager {
 					newArmor = Math.min(newArmor, echelon.getMaxArmorToughness());
 				}
 				attribute.setBaseValue(newArmor);
-				//		EEchelons.LOGGER.info("mob new armor toughness -> {}", mob.getAttributeValue(Attributes.ARMOR_TOUGHNESS));
+				//		EEchelons.LOGGER.debug("mob new armor toughness -> {}", mob.getAttributeValue(Attributes.ARMOR_TOUGHNESS));
 			}
 		}
 	}
@@ -447,7 +447,7 @@ public class EchelonManager {
 					newKnockback = Math.min(newKnockback, echelon.getMaxKnockback());
 				}
 				attribute.setBaseValue(newKnockback);
-				//			EEchelons.LOGGER.info("mob new knockback -> {}", mob.getAttributeValue(Attributes.ATTACK_KNOCKBACK));
+				//			EEchelons.LOGGER.debug("mob new knockback -> {}", mob.getAttributeValue(Attributes.ATTACK_KNOCKBACK));
 			}
 		}
 	}
@@ -462,7 +462,7 @@ public class EchelonManager {
 					newKnockback = Math.min(newKnockback, echelon.getMaxKnockbackResist());
 				}
 				attribute.setBaseValue(newKnockback);
-				//			EEchelons.LOGGER.info("mob new knockback resist -> {}", mob.getAttributeValue(Attributes.KNOCKBACK_RESISTANCE));
+				//			EEchelons.LOGGER.debug("mob new knockback resist -> {}", mob.getAttributeValue(Attributes.KNOCKBACK_RESISTANCE));
 			}
 		}
 	}

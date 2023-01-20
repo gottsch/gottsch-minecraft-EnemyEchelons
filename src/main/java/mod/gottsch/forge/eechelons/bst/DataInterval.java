@@ -1,6 +1,6 @@
 /*
  * This file is part of  Enemy Echelons.
- * Copyright (c) 2022, Mark Gottschling (gottsch)
+ * Copyright (c) 2022 Mark Gottschling (gottsch)
  * 
  * All rights reserved.
  *
