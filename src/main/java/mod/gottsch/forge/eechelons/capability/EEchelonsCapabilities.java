@@ -1,6 +1,6 @@
 /*
  * This file is part of  Enemy Echelons.
- * Copyright (c) 2022, Mark Gottschling (gottsch)
+ * Copyright (c) 2022 Mark Gottschling (gottsch)
  *
  * Enemy Echelons is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -21,10 +21,7 @@ package mod.gottsch.forge.eechelons.capability;
 import mod.gottsch.forge.eechelons.EEchelons;
 import mod.gottsch.forge.eechelons.echelon.EchelonManager;
 import mod.gottsch.forge.eechelons.integration.ChampionsIntegration;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.monster.Enemy;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityManager;
 import net.minecraftforge.common.capabilities.CapabilityToken;

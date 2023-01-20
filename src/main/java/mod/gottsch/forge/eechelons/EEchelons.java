@@ -1,6 +1,6 @@
 /*
  * This file is part of  Enemy Echelons.
- * Copyright (c) 2022, Mark Gottschling (gottsch)
+ * Copyright (c) 2022 Mark Gottschling (gottsch)
  * 
  * All rights reserved.
  *
@@ -38,13 +38,11 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.IConfigSpec;
 import net.minecraftforge.fml.config.ModConfig.Type;
 import net.minecraftforge.fml.event.config.ModConfigEvent;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLPaths;
 
@@ -59,7 +57,7 @@ import net.minecraftforge.fml.loading.FMLPaths;
  */
 @Mod(EEchelons.MODID)
 public class EEchelons {
-	public static final Logger LOGGER = LogManager.getLogger();
+	public static final Logger LOGGER = LogManager.getLogger(EEchelons.MODID);
 
 	public static final String MODID = "eechelons";
 
@@ -72,6 +70,7 @@ public class EEchelons {
 		Registration.init();
 		// register the server config
 		ModLoadingContext.get().registerConfig(Type.CLIENT, Config.CLIENT_SPEC);
+		ModLoadingContext.get().registerConfig(Type.COMMON, Config.COMMON_SPEC);
 		ModLoadingContext.get().registerConfig(Type.SERVER, Config.SERVER_SPEC);
 		// create the default config
 		createServerConfig(Config.ECHELONS_SPEC, "echelons", ECHELONS_CONFIG_VERSION);
