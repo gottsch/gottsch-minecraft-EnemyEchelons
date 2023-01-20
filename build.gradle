@@ -160,8 +160,8 @@ dependencies {
     minecraft 'net.minecraftforge:forge:1.16.5-36.2.34'
 
 	//compileOnly fg.deobf("curse.maven:gottschcore-272450:3556719")
-	compileOnly fg.deobf("someguyssoftware.gottschcore:GottschCore:mc1.16.5-f36.2.34-v1.6.0")
-	compileOnly fg.deobf("someguyssoftware.gottschjar:GottschJar:mc1.18.2-f40.1.0-v1.0.0")
+	compileOnly fg.deobf("someguyssoftware.gottschcore:GottschCore:mc1.16.5-f36.2.34-v1.8.0")
+	//compileOnly fg.deobf("someguyssoftware.gottschjar:GottschJar:mc1.18.2-f40.1.0-v1.0.0")
 	compileOnly fg.deobf("curse.maven:champions-307152:${cf_champions}")
 	compileOnly fg.deobf("curse.maven:jade-324717:${cf_jade}")
 

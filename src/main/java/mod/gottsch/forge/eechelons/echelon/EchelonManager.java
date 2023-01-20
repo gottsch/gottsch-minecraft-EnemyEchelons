@@ -401,7 +401,7 @@ public class EchelonManager {
 					newDamage = Math.min(newDamage, echelon.getMaxDamage());
 				}
 				attribute.setBaseValue(newDamage);
-				EEchelons.LOGGER.info("mob new damage -> {}", mob.getAttributeValue(Attributes.ATTACK_DAMAGE));
+//				EEchelons.LOGGER.info("mob new damage -> {}", mob.getAttributeValue(Attributes.ATTACK_DAMAGE));
 			}
 		}
 	}
