@@ -1,6 +1,6 @@
 /*
  * This file is part of  Enemy Echelons.
- * Copyright (c) 2022, Mark Gottschling (gottsch)
+ * Copyright (c) 2022 Mark Gottschling (gottsch)
  *
  * Enemy Echelons is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,13 +17,12 @@
  */
 package mod.gottsch.forge.eechelons.event;
 
-import com.someguyssoftware.gottschcore.world.WorldInfo;
-
 import mod.gottsch.forge.eechelons.EEchelons;
 import mod.gottsch.forge.eechelons.capability.EEchelonsCapabilities;
 import mod.gottsch.forge.eechelons.echelon.EchelonManager;
 import mod.gottsch.forge.eechelons.network.EEchelonsNetwork;
 import mod.gottsch.forge.eechelons.network.LevelRequestToServer;
+import mod.gottsch.forge.gottschcore.world.WorldInfo;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.monster.Enemy;
@@ -55,7 +54,7 @@ public class WorldEventHandler {
 			Entity entity = event.getEntity();
 
 			if (EchelonManager.isValidEntity(entity)) {
-//				EEchelons.LOGGER.info("entity joining world -> {} : {}", entity.getName().getString(), entity.getId());
+//				EEchelons.LOGGER.debug("entity joining world -> {} : {}", entity.getName().getString(), entity.getId());
 				/*
 				 * if on the client, request an update from the server
 				 */

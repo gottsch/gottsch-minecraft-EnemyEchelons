@@ -56,7 +56,7 @@ public class LevelMessageToClient {
 	}
 	
 	public static void handle(LevelMessageToClient msg, Supplier<NetworkEvent.Context> context) {
-//		EEchelons.LOGGER.info("received message -> {}", msg);
+//		EEchelons.LOGGER.debug("received message -> {}", msg);
 		NetworkEvent.Context ctx = context.get();
 		LogicalSide sideReceived = ctx.getDirection().getReceptionSide();
 
@@ -69,9 +69,9 @@ public class LevelMessageToClient {
 			ClientLevel world = Minecraft.getInstance().level;
 			if (world != null) {
 				Entity entity = world.getEntity(msg.entityId);
-//				EEchelons.LOGGER.info("handling client message to entity -> {} for level -> {}", entity.getName().getString(), msg.level);
+//				EEchelons.LOGGER.debug("handling client message to entity -> {} for level -> {}", entity.getName().getString(), msg.level);
 				entity.getCapability(EEchelonsCapabilities.LEVEL_CAPABILITY).ifPresent(cap -> {
-//					EEchelons.LOGGER.info("setting the level on the client entity");
+//					EEchelons.LOGGER.debug("setting the level on the client entity");
 					cap.setLevel(msg.level);
 				});
 			}
