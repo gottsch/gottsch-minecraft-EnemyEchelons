@@ -21,7 +21,7 @@ import mod.gottsch.forge.eechelons.config.Config;
 import net.minecraft.world.entity.Entity;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.fml.ModList;
-import top.theillusivec4.champions.common.capability.ChampionCapability;
+//import top.theillusivec4.champions.common.capability.ChampionCapability;
 
 /**
  * 
@@ -44,7 +44,8 @@ public class ChampionsIntegration {
 	}
 
 	public static boolean hasCapability(AttachCapabilitiesEvent<Entity> event) {
-		return event.getCapabilities().get(ChampionCapability.ID) != null;
+		return false;
+//		return event.getCapabilities().get(ChampionCapability.ID) != null;
 	}
 
 }

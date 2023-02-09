@@ -32,8 +32,11 @@ import net.minecraft.server.level.ServerEntity;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.network.NetworkEvent;
+import net.minecraftforge.network.NetworkEvent.Context;
 import net.minecraftforge.network.PacketDistributor;
 
 /**
@@ -45,28 +48,28 @@ public class LevelRequestToServer {
 	private final int entityId;
 	private final String registryName;
 	private final String location;
-	
+
 	public LevelRequestToServer(int entityId, String registryName, String location) {
 		this.entityId = entityId;
 		this.registryName = registryName;
 		this.location = location;
 	}
-	
+
 	public static void encode(LevelRequestToServer msg, FriendlyByteBuf buf) {
 		buf.writeInt(msg.entityId);
 		buf.writeUtf(msg.registryName);
 		buf.writeUtf(msg.location);
 	}
-	
+
 	public static LevelRequestToServer decode(FriendlyByteBuf buf) {
 		int entityId = buf.readInt();
 		String registryName = buf.readUtf();
 		String location = buf.readUtf();
-	    return new LevelRequestToServer(entityId, registryName, location);
+		return new LevelRequestToServer(entityId, registryName, location);
 	}
-	
+
 	public static void handle(LevelRequestToServer msg, Supplier<NetworkEvent.Context> context) {
-		EEchelons.LOGGER.debug("received request message -> {}", msg);
+//		EEchelons.LOGGER.debug("received request message -> {}", msg);
 		NetworkEvent.Context ctx = context.get();
 		LogicalSide sideReceived = ctx.getDirection().getReceptionSide();
 
@@ -76,25 +79,31 @@ public class LevelRequestToServer {
 		}
 
 		ctx.enqueueWork(() -> {
-			ResourceKey<Level> dimension = ResourceKey.create(ResourceKey.createRegistryKey(new ResourceLocation(msg.registryName)), new ResourceLocation(msg.location));
-			ServerLevel world = ctx.getSender().server.getLevel(dimension);
-
-			if (world != null) {
-				Entity entity = world.getEntity(msg.entityId);
-				if (entity != null) {
-					EEchelons.LOGGER.debug("handling server message to entity -> {} : {}", entity.getName().getString(), entity.getId());
-					entity.getCapability(EEchelonsCapabilities.LEVEL_CAPABILITY).ifPresent(cap -> {
-						EEchelons.LOGGER.debug("entity {} has cap", entity.getId());
-						// send the level back to the client
-						LevelMessageToClient message = new LevelMessageToClient(entity.getId(), cap.getLevel());
-						EEchelonsNetwork.CHANNEL.send(PacketDistributor.TRACKING_ENTITY.with(() -> entity), message);
-					});
-				}
-			}
+			processMessage(ctx, msg);
 		});
+
 		context.get().setPacketHandled(true);
+
 	}
 
+	private static void processMessage(Context ctx, LevelRequestToServer msg) {
+		Level world = ctx.getSender().level;
+
+//		EEchelons.LOGGER.debug("processing request message -> {}", msg);
+		if (world != null) {
+			Entity entity = world.getEntity(msg.entityId);
+			if (entity != null) {
+//				EEchelons.LOGGER.debug("handling server message to entity -> {} : {}", entity.getName().getString(), entity.getId());
+				entity.getCapability(EEchelonsCapabilities.LEVEL_CAPABILITY).ifPresent(cap -> {
+//					EEchelons.LOGGER.debug("entity {} has cap", entity.getId());
+					// send the level back to the client
+					LevelMessageToClient message = new LevelMessageToClient(entity.getId(), cap.getLevel());
+					EEchelonsNetwork.CHANNEL.send(PacketDistributor.TRACKING_ENTITY.with(() -> entity), message);
+				});
+			}
+		}
+	}
+	
 	@Override
 	public String toString() {
 		return "LevelRequestToServer [entityId=" + entityId + ", registryName=" + registryName + ", location="

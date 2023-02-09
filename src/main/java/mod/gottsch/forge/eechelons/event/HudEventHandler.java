@@ -29,8 +29,10 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.ForgeHooksClient;
-import net.minecraftforge.client.event.RenderGameOverlayEvent;
-import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
+import net.minecraftforge.client.event.CustomizeGuiOverlayEvent;
+import net.minecraftforge.client.event.RenderGuiOverlayEvent;
+//import net.minecraftforge.client.event.RenderGameOverlayEvent;
+//import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
@@ -56,20 +58,15 @@ public class HudEventHandler {
 	public static class ForgeBusSubscriber {
 		
 		@SubscribeEvent
-		public static void renderHealthHud(final RenderGameOverlayEvent.BossInfo.Pre evt) {
+		public static void renderHealthHud(final RenderGuiOverlayEvent.Pre evt) {
 			if (Config.SERVER.showHud.get()) {
 				Minecraft mc = Minecraft.getInstance();
-				Optional<LivingEntity> livingEntity = MouseUtil.getMouseOverEchelonMob(mc, evt.getPartialTicks());
+				Optional<LivingEntity> livingEntity = MouseUtil.getMouseOverEchelonMob(mc, evt.getPartialTick());
 				livingEntity.ifPresent(entity -> {
-					PoseStack matrixStack = evt.getMatrixStack();
+					PoseStack matrixStack = evt.getPoseStack();
 
 					if (HudUtil.renderLevelBar(matrixStack, entity)) {
 						isRendering = true;
-
-						if (evt.getType() == ElementType.BOSSINFO) {
-							evt.setCanceled(true);
-							ForgeHooksClient.renderBossEventPost(matrixStack, mc.getWindow());
-						}
 					} else {
 						isRendering = false;
 					}

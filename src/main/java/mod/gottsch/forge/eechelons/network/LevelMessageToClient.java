@@ -27,8 +27,11 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.Entity;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.network.NetworkEvent;
+import net.minecraftforge.network.NetworkEvent.Context;
 
 /**
  * 
@@ -38,25 +41,25 @@ import net.minecraftforge.network.NetworkEvent;
 public class LevelMessageToClient {
 	private final int entityId;
 	private final int level;
-	
+
 	public LevelMessageToClient(int entityId, int level) {
 		this.entityId = entityId;
 		this.level = level;
 	}
-	
+
 	public static void encode(LevelMessageToClient msg, FriendlyByteBuf buf) {
 		buf.writeInt(msg.entityId);
 		buf.writeInt(msg.level);
 	}
-	
+
 	public static LevelMessageToClient decode(FriendlyByteBuf buf) {
 		int entityId = buf.readInt();
 		int level = buf.readInt();
-	    return new LevelMessageToClient(entityId, level);
+		return new LevelMessageToClient(entityId, level);
 	}
-	
+
 	public static void handle(LevelMessageToClient msg, Supplier<NetworkEvent.Context> context) {
-//		EEchelons.LOGGER.debug("received message -> {}", msg);
+//		EEchelons.LOGGER.debug("received message on client -> {}", msg);
 		NetworkEvent.Context ctx = context.get();
 		LogicalSide sideReceived = ctx.getDirection().getReceptionSide();
 
@@ -64,24 +67,30 @@ public class LevelMessageToClient {
 			EEchelons.LOGGER.warn("LevelMessageToClient received on wrong side -> {}", ctx.getDirection().getReceptionSide());
 			return;
 		}
-		
-		context.get().enqueueWork(() -> {
-			ClientLevel world = Minecraft.getInstance().level;
-			if (world != null) {
-				Entity entity = world.getEntity(msg.entityId);
-//				EEchelons.LOGGER.debug("handling client message to entity -> {} for level -> {}", entity.getName().getString(), msg.level);
-				entity.getCapability(EEchelonsCapabilities.LEVEL_CAPABILITY).ifPresent(cap -> {
-//					EEchelons.LOGGER.debug("setting the level on the client entity");
-					cap.setLevel(msg.level);
-				});
-			}
-		});
+
+		context.get().enqueueWork(() ->
+		DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> processMessage(ctx, msg))
+				);
 		context.get().setPacketHandled(true);
+
+	}
+
+	private static void processMessage(Context ctx, LevelMessageToClient msg) {
+		ClientLevel world = Minecraft.getInstance().level;
+		if (world != null) {
+			Entity entity = world.getEntity(msg.entityId);
+//			EEchelons.LOGGER.debug("handling client message to entity -> {} for level -> {}", entity.getName().getString(), msg.level);
+			entity.getCapability(EEchelonsCapabilities.LEVEL_CAPABILITY).ifPresent(cap -> {
+//				EEchelons.LOGGER.debug("setting the level on the client entity");
+				cap.setLevel(msg.level);
+			});
+		}
 	}
 
 	@Override
 	public String toString() {
 		return "LevelMessageToClient [entityId=" + entityId + ", level=" + level + "]";
 	}
+
 
 }

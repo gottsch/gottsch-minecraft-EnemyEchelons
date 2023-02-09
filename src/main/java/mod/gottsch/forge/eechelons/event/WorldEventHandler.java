@@ -25,8 +25,7 @@ import mod.gottsch.forge.eechelons.network.LevelRequestToServer;
 import mod.gottsch.forge.gottschcore.world.WorldInfo;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.monster.Enemy;
-import net.minecraftforge.event.entity.EntityJoinWorldEvent;
+import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
@@ -49,7 +48,7 @@ public class WorldEventHandler {
 		 * @param event
 		 */
 		@SubscribeEvent
-		public static void onJoin(EntityJoinWorldEvent event) {
+		public static void onJoin(EntityJoinLevelEvent event) {
 
 			Entity entity = event.getEntity();
 
@@ -61,7 +60,7 @@ public class WorldEventHandler {
 				if (WorldInfo.isClientSide(event.getEntity().level)) {
 					// get cap, ensure that level hasn't already been set.
 					if (entity.getCapability(EEchelonsCapabilities.LEVEL_CAPABILITY).map(cap -> cap.getLevel() == -1).orElse(false)) {
-						LevelRequestToServer message = new LevelRequestToServer(entity.getId(), entity.level.dimension().getRegistryName().toString(),
+						LevelRequestToServer message = new LevelRequestToServer(entity.getId(), entity.level.dimension().location().toString(),
 								entity.level.dimension().location().toString());
 						EEchelonsNetwork.CHANNEL.sendToServer(message);
 					}

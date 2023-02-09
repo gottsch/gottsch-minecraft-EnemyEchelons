@@ -28,7 +28,6 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import com.google.common.collect.Maps;
 
-import mod.gottsch.forge.eechelons.EEchelons;
 import mod.gottsch.forge.eechelons.bst.Interval;
 import mod.gottsch.forge.eechelons.bst.IntervalTree;
 import mod.gottsch.forge.eechelons.capability.EEchelonsCapabilities;
@@ -37,6 +36,7 @@ import mod.gottsch.forge.eechelons.config.EchelonsHolder.Echelon;
 import mod.gottsch.forge.gottschcore.random.WeightedCollection;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
@@ -159,12 +159,12 @@ public class EchelonManager {
 	 * @return
 	 */
 	public static Echelon getEchelon(Mob mob) {
-		Pair<ResourceLocation, ResourceLocation> keyPair = new ImmutablePair<>(mob.getLevel().dimension().location(), mob.getType().getRegistryName());
+		Pair<ResourceLocation, ResourceLocation> keyPair = new ImmutablePair<>(mob.getLevel().dimension().location(), EntityType.getKey(mob.getType()));
 		if (ECHELONS_BY_MOB.containsKey(keyPair)) {
 			return ECHELONS_BY_MOB.get(keyPair);
 		}
 		else {
-			keyPair = new ImmutablePair<>(ALL_DIMENSION, mob.getType().getRegistryName());
+			keyPair = new ImmutablePair<>(ALL_DIMENSION, EntityType.getKey(mob.getType()));
 			if (ECHELONS_BY_MOB.containsKey(keyPair)) {
 				return ECHELONS_BY_MOB.get(keyPair);
 			}
@@ -199,13 +199,13 @@ public class EchelonManager {
 		IntervalTree<WeightedCollection<Double, Integer>> tree = null;
 
 		// first check the histograms by mob map
-		Pair<ResourceLocation, ResourceLocation> keyPair = new ImmutablePair<>(mob.getLevel().dimension().location(), mob.getType().getRegistryName());
+		Pair<ResourceLocation, ResourceLocation> keyPair = new ImmutablePair<>(mob.getLevel().dimension().location(), EntityType.getKey(mob.getType()));
 		if (HISTOGRAM_TREES_BY_MOB.containsKey(keyPair)) {
 			tree = HISTOGRAM_TREES_BY_MOB.get(keyPair);
 			result = getLevel(tree, searchValue);
 		}
 		else {
-			keyPair = new ImmutablePair<>(ALL_DIMENSION, mob.getType().getRegistryName());
+			keyPair = new ImmutablePair<>(ALL_DIMENSION, EntityType.getKey(mob.getType()));
 			if (HISTOGRAM_TREES_BY_MOB.containsKey(keyPair)) {
 				tree = HISTOGRAM_TREES_BY_MOB.get(keyPair);
 				result = getLevel(tree, searchValue);
@@ -278,7 +278,7 @@ public class EchelonManager {
 	public static boolean isValidEntity(ResourceLocation dimension, Entity entity) {
 		boolean result = false;
 		if (ECHELONS.containsKey(dimension)) {
-			if (!ECHELONS.get(dimension).getMobBlacklist().contains(entity.getType().getRegistryName().toString())) {
+			if (!ECHELONS.get(dimension).getMobBlacklist().contains(EntityType.getKey(entity.getType()).toString())) {
 				result = true;
 			}
 		}
@@ -293,8 +293,6 @@ public class EchelonManager {
 		mob.getCapability(EEchelonsCapabilities.LEVEL_CAPABILITY).ifPresent(cap -> {
 
 			if (cap.getLevel() < 0) {
-				// determine dimension
-				ResourceLocation dimension = mob.getLevel().dimension().location();
 				// determine the altitute (y-value)
 				int y = mob.getBlockY();
 
