@@ -28,6 +28,7 @@ import net.minecraftforge.fml.ModList;
  * @author Mark Gottschling on Jul 31, 2022
  *
  */
+@Deprecated
 public class ChampionsIntegration {
 	private static boolean championsLoaded = false;
 	

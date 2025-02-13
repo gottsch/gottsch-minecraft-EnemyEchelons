@@ -41,7 +41,7 @@ public class MouseUtil {
 		Entity entity = mc.getCameraEntity();
 		if (entity != null) {
 			if (mc.level != null) {
-				double range = Config.CLIENT.hudRange.get();
+				double range = Config.SERVER.hudRange.get();
 				HitResult rayTraceResult = entity.pick(range, partialTicks, false);
 				Vec3 vec3d = entity.getEyePosition(partialTicks);
 				double distance = rayTraceResult.getLocation().distanceToSqr(vec3d);

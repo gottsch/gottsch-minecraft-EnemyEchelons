@@ -17,25 +17,22 @@
  */
 package mod.gottsch.forge.eechelons.event;
 
-import java.util.Optional;
-
-import com.mojang.blaze3d.vertex.PoseStack;
-
 import mod.gottsch.forge.eechelons.EEchelons;
 import mod.gottsch.forge.eechelons.client.HudUtil;
 import mod.gottsch.forge.eechelons.client.MouseUtil;
 import mod.gottsch.forge.eechelons.config.Config;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.phys.EntityHitResult;
+import net.minecraft.world.phys.HitResult;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.ForgeHooksClient;
-import net.minecraftforge.client.event.CustomizeGuiOverlayEvent;
 import net.minecraftforge.client.event.RenderGuiOverlayEvent;
-//import net.minecraftforge.client.event.RenderGameOverlayEvent;
-//import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
+
+import java.util.Optional;
 
 /**
  * This class was derived from Champions by TheIllusiveC4
@@ -44,8 +41,8 @@ import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
  */
 public class HudEventHandler {
 
-	public static boolean isRendering = false;
-	
+//	public static boolean isRendering = false;
+
 	// NOTE these are only used to check where the offset is set to, so other integrations can move if they overlap
 	// these are NOT used in the actual echelons rendering of background and level text 
 	public static int startX = 0;
@@ -56,25 +53,29 @@ public class HudEventHandler {
 	 */
 	@Mod.EventBusSubscriber(modid = EEchelons.MODID, bus = EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
 	public static class ForgeBusSubscriber {
-		
+
 		@SubscribeEvent
 		public static void renderHealthHud(final RenderGuiOverlayEvent.Pre evt) {
 			if (Config.SERVER.showHud.get()) {
 				Minecraft mc = Minecraft.getInstance();
-				Optional<LivingEntity> livingEntity = MouseUtil.getMouseOverEchelonMob(mc, evt.getPartialTick());
-				livingEntity.ifPresent(entity -> {
-					PoseStack matrixStack = evt.getPoseStack();
 
-					if (HudUtil.renderLevelBar(matrixStack, entity)) {
-						isRendering = true;
+				Optional<LivingEntity> livingEntity;
+				if (Config.SERVER.hudRangeEnabled.get()) {
+					livingEntity = MouseUtil.getMouseOverEchelonMob(mc, evt.getPartialTick());
+				} else {
+					HitResult hitResult = mc.hitResult;
+					if (hitResult.getType() == HitResult.Type.ENTITY
+							&& ((EntityHitResult)hitResult).getEntity() instanceof LivingEntity) {
+						livingEntity = Optional.of((LivingEntity)((EntityHitResult)hitResult).getEntity());
 					} else {
-						isRendering = false;
+						livingEntity = Optional.empty();
 					}
-				});
-
-				if (livingEntity.isEmpty()) {
-					isRendering = false;
 				}
+
+				livingEntity.ifPresent(entity -> {
+					GuiGraphics matrixStack = evt.getGuiGraphics();
+					HudUtil.renderLevelBar(matrixStack, entity);
+				});
 			}
 		}
 	}

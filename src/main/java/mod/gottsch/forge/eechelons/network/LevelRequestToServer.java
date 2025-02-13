@@ -87,7 +87,7 @@ public class LevelRequestToServer {
 	}
 
 	private static void processMessage(Context ctx, LevelRequestToServer msg) {
-		Level world = ctx.getSender().level;
+		Level world = ctx.getSender().level();
 
 //		EEchelons.LOGGER.debug("processing request message -> {}", msg);
 		if (world != null) {

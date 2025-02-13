@@ -21,8 +21,14 @@ package mod.gottsch.forge.eechelons.echelon;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Predicate;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+import mod.gottsch.forge.eechelons.EEchelons;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -56,32 +62,37 @@ public class EchelonManager {
 	private static final ResourceLocation ALL_DIMENSION = new ResourceLocation(".", ".");
 
 	/*
-	 * map of echelons by dimension
+	 * map of echelons by id
+	 * currently not implemented in any meaningful way.
 	 */
-	private static final Map<ResourceLocation, Echelon> ECHELONS = Maps.newHashMap();
-	/*
-	 * map of level-histogram interval tree (bst) by dimension
-	 */
-	private static final Map<ResourceLocation, IntervalTree<WeightedCollection<Double, Integer>>> HISTOGRAM_TREES = Maps.newHashMap();
+	private static final Map<String, Echelon> ECHELONS_BY_ID = Maps.newHashMap();
 
 	/*
-	 * map of echelons by dimension-mob pair
+	 * map of echelons by dimension
+	 */
+	private static final Multimap<ResourceLocation, Echelon> ECHELONS = ArrayListMultimap.create();
+
+	/*
+	 * map of echelons by dimension-mod (namespace) pair
+	 */
+	private static final Map<Pair<ResourceLocation, String>, Echelon> ECHELONS_BY_MOD = Maps.newHashMap();
+
+	/*
+	 * map of echelons by dimension-mob pair.
+	 * this is for white-list mobs.
 	 */
 	private static final Map<Pair<ResourceLocation, ResourceLocation>, Echelon> ECHELONS_BY_MOB = Maps.newHashMap();
-	/*
-	 * map of level-histogram interval tree (bst) by dimension-mob pair
-	 */
-	private static final Map<Pair<ResourceLocation, ResourceLocation>, IntervalTree<WeightedCollection<Double, Integer>>> HISTOGRAM_TREES_BY_MOB = Maps.newHashMap();
 
 	/**
 	 * 
 	 */
 	public static void build() {
+		ECHELONS_BY_ID.clear();
 		ECHELONS.clear();
-		HISTOGRAM_TREES.clear();
+
+		ECHELONS_BY_MOD.clear();
 
 		ECHELONS_BY_MOB.clear();
-		HISTOGRAM_TREES_BY_MOB.clear();
 
 		List<Echelon> echelons = Config.echelons;
 		if (ObjectUtils.isEmpty(echelons)) {
@@ -91,6 +102,25 @@ public class EchelonManager {
 			if (ObjectUtils.isEmpty(echelon.getStratum())) {
 				return;
 			}
+
+			// add to map
+			if (!StringUtils.isNotBlank(echelon.getId())) {
+				ECHELONS_BY_ID.put(echelon.getId(), echelon);
+			}
+
+			// scan the mob white/black list to see if there are any wildcards and move to mod lists.
+			Predicate<String> isWildcard = mob -> mob.contains(":*");
+			echelon.getMobWhitelist().stream().filter(isWildcard)
+					.forEach(mob -> {
+						echelon.getModWhitelist().add(mob.substring(0, mob.indexOf(":")));
+					});
+			echelon.getMobBlacklist().stream().filter(isWildcard)
+					.forEach(mob -> {
+						echelon.getModBlacklist().add(mob.substring(0, mob.indexOf(":")));
+					});
+			echelon.getMobWhitelist().removeIf(isWildcard);
+			echelon.getMobBlacklist().removeIf(isWildcard);
+
 			/*
 			 *  build BST
 			 */
@@ -109,155 +139,121 @@ public class EchelonManager {
 				tree.insert(interval);
 			});
 
-			// TODO refactor to not duplicate code
-			if (ObjectUtils.isEmpty(echelon.getDimensions())) {
-				if (!echelon.getMobWhitelist().isEmpty()) {
-					echelon.getMobWhitelist().forEach(mob -> {
-						// create a key pair
-						Pair<ResourceLocation, ResourceLocation> keyPair = new ImmutablePair<>(ALL_DIMENSION, new ResourceLocation(mob));
-						ECHELONS_BY_MOB.put(keyPair, echelon);
-						HISTOGRAM_TREES_BY_MOB.put(keyPair, tree);
-					});
+			// add histogram to echelon
+			echelon.setHistogram(tree);
 
-				}
-				else {
-					ECHELONS.put(ALL_DIMENSION, echelon);
-					HISTOGRAM_TREES.put(ALL_DIMENSION, tree);
-				}
+			// TODO refactor to not duplicate code
+			// TODO can simplify by checking if dimension is empty, then add "." to
+			// TODO the dimension list and then process the list like normal.
+			if (ObjectUtils.isEmpty(echelon.getDimensions())) {
+				echelon.getDimensions().add(".");
 			}
-			else {
+
+//			if (ObjectUtils.isEmpty(echelon.getDimensions())) {
+//				if (!echelon.getModWhitelist().isEmpty()) {
+//					echelon.getModWhitelist().forEach(mod -> {
+//						// create a key pair
+//						Pair<ResourceLocation, String> keyPair = new ImmutablePair<>(ALL_DIMENSION, mod);
+//						if (!ECHELONS_BY_MOD.containsKey(keyPair)) {
+//							ECHELONS_BY_MOD.put(keyPair, echelon);
+////							HISTOGRAM_TREES_BY_MOD.put(keyPair, tree);
+//						}
+//					});
+//				}
+//				else if (!echelon.getMobWhitelist().isEmpty()) {
+//					echelon.getMobWhitelist().forEach(mob -> {
+//						// create a key pair
+//						Pair<ResourceLocation, ResourceLocation> keyPair = new ImmutablePair<>(ALL_DIMENSION, new ResourceLocation(mob));
+//						if (!ECHELONS_BY_MOB.containsKey(keyPair)) {
+//							ECHELONS_BY_MOB.put(keyPair, echelon);
+////							HISTOGRAM_TREES_BY_MOB.put(keyPair, tree);
+//						}
+//					});
+//
+//				}
+//				else {
+//					ECHELONS.put(ALL_DIMENSION, echelon);
+////					HISTOGRAM_TREES.put(ALL_DIMENSION, tree);
+//				}
+//			}
+//			else {
 				// build
 				echelon.getDimensions().forEach(dimension -> {
 					ResourceLocation dimensionKey;
 					if (dimension.equals(".") || dimension.equals("*") || dimension.equals("*:*")) {
 						dimensionKey = ALL_DIMENSION;
-					}else {
+					} else {
 						dimensionKey = new ResourceLocation(dimension);
 					}
 
-					if (!echelon.getMobWhitelist().isEmpty()) {
+					if (!echelon.getModWhitelist().isEmpty()) {
+						echelon.getModWhitelist().forEach(mod -> {
+							// create a key pair
+							Pair<ResourceLocation, String> keyPair = new ImmutablePair<>(dimensionKey, mod);
+							if (!ECHELONS_BY_MOD.containsKey(keyPair)) {
+								ECHELONS_BY_MOD.put(keyPair, echelon);
+//								HISTOGRAM_TREES_BY_MOD.put(keyPair, tree);
+							}
+						});
+					}
+					else if (!echelon.getMobWhitelist().isEmpty()) {
 						echelon.getMobWhitelist().forEach(mob -> {
 							// create a key pair
 							Pair<ResourceLocation, ResourceLocation> keyPair = new ImmutablePair<>(dimensionKey, new ResourceLocation(mob));
-							ECHELONS_BY_MOB.put(keyPair, echelon);
-							HISTOGRAM_TREES_BY_MOB.put(keyPair, tree);
+							if (!ECHELONS_BY_MOB.containsKey(keyPair)) {
+								ECHELONS_BY_MOB.put(keyPair, echelon);
+//								HISTOGRAM_TREES_BY_MOB.put(keyPair, tree);
+							}
 						});
 					}
 					else {
 						ECHELONS.put(dimensionKey, echelon);
-						HISTOGRAM_TREES.put(dimensionKey, tree);
+//						HISTOGRAM_TREES.put(dimensionKey, tree);
 					}
 				});
-			}
+//			}
 		});
 	}
 
 	/**
-	 * 
-	 * @param dimension
-	 * @param entity
+	 *
+	 * @param mob
 	 * @return
 	 */
-	public static Echelon getEchelon(Mob mob) {
-		Pair<ResourceLocation, ResourceLocation> keyPair = new ImmutablePair<>(mob.getLevel().dimension().location(), EntityType.getKey(mob.getType()));
+	public static Optional<Echelon> getEchelon(Mob mob) {
+		Pair<ResourceLocation, ResourceLocation> keyPair = new ImmutablePair<>(mob.level().dimension().location(), EntityType.getKey(mob.getType()));
 		if (ECHELONS_BY_MOB.containsKey(keyPair)) {
-			return ECHELONS_BY_MOB.get(keyPair);
+			return Optional.of(ECHELONS_BY_MOB.get(keyPair));
 		}
 		else {
 			keyPair = new ImmutablePair<>(ALL_DIMENSION, EntityType.getKey(mob.getType()));
 			if (ECHELONS_BY_MOB.containsKey(keyPair)) {
-				return ECHELONS_BY_MOB.get(keyPair);
+				return Optional.of(ECHELONS_BY_MOB.get(keyPair));
 			}
 			else {
-				if (isValidEntity(mob.level.dimension().location(), mob)) {
-					return ECHELONS.get(mob.level.dimension().location());
+				Optional<Echelon> echelon = searchEchelonsForMob(mob.level().dimension().location(), mob);
+				if (echelon.isEmpty()) {
+					echelon = searchEchelonsForMob(ALL_DIMENSION, mob);
 				}
-				else if (isValidEntity(ALL_DIMENSION, mob)) {
-					return ECHELONS.get(ALL_DIMENSION);
+				return echelon;
+			}
+		}
+	}
+
+	public static Optional<Echelon> searchEchelonsForMob(ResourceLocation dimension, Mob entity) {
+		Optional<Echelon> echelon = Optional.empty();
+		ResourceLocation mob = EntityType.getKey(entity.getType());
+		// for each echelon in a given dimension
+		for (Echelon e : ECHELONS.get(dimension)) {
+			// find the first valid echelon - ie not in the blacklist
+			// NOTE it is assumed that the whitelisted-mob lists have been interrogated already
+			if (!e.getModBlacklist().contains(mob.getNamespace())) {
+				if (!e.getMobBlacklist().contains(mob.toString())) {
+					return Optional.of(e);
 				}
 			}
 		}
-		return null;
-	}
-
-	/**
-	 * 
-	 * @param key
-	 * @return
-	 */
-	@Deprecated
-	public static Echelon getEchelon(ResourceLocation key) {
-		if (ECHELONS.containsKey(key)) {
-			return ECHELONS.get(key);
-		}
-		return null;
-	}
-
-	public static Integer getLevel(Mob mob, Integer searchValue) {
-		Integer result = 0;
-
-		IntervalTree<WeightedCollection<Double, Integer>> tree = null;
-
-		// first check the histograms by mob map
-		Pair<ResourceLocation, ResourceLocation> keyPair = new ImmutablePair<>(mob.getLevel().dimension().location(), EntityType.getKey(mob.getType()));
-		if (HISTOGRAM_TREES_BY_MOB.containsKey(keyPair)) {
-			tree = HISTOGRAM_TREES_BY_MOB.get(keyPair);
-			result = getLevel(tree, searchValue);
-		}
-		else {
-			keyPair = new ImmutablePair<>(ALL_DIMENSION, EntityType.getKey(mob.getType()));
-			if (HISTOGRAM_TREES_BY_MOB.containsKey(keyPair)) {
-				tree = HISTOGRAM_TREES_BY_MOB.get(keyPair);
-				result = getLevel(tree, searchValue);
-			}
-			else {
-				result = getLevel(mob.getLevel().dimension().location(), searchValue);
-			}
-		}
-
-		return result;
-	}
-
-	/**
-	 * 
-	 * @param key
-	 * @param searchValue
-	 * @return
-	 */
-	public static Integer getLevel(ResourceLocation key, Integer searchValue) {
-		Integer result = 0;
-
-		// use default key is not found in the histogram tree
-		if (!HISTOGRAM_TREES.containsKey(key)) {
-			key = ALL_DIMENSION;
-		}
-
-		if (HISTOGRAM_TREES.containsKey(key)) {
-			IntervalTree<WeightedCollection<Double, Integer>> tree = HISTOGRAM_TREES.get(key);
-			result = getLevel(tree, searchValue);
-		}
-		return result;
-	}
-
-	private static Integer getLevel(IntervalTree<WeightedCollection<Double, Integer>> tree, Integer searchValue) {
-		Integer result = 0;
-
-		List<Interval<WeightedCollection<Double, Integer>>> stratum = tree
-				.getOverlapping(tree.getRoot(), new Interval<>(searchValue, searchValue), false);
-
-		if (ObjectUtils.isEmpty(stratum)) {
-			return 0;
-		}
-
-		// get the first element/strata - there should only be one.
-		WeightedCollection<Double, Integer> col = stratum.get(0).getData();
-		if (ObjectUtils.isEmpty(col)) {
-			return 0;
-		}
-		// get the next weighted random integer
-		result = col.next();			
-
-		return result;
+		return echelon;
 	}
 
 	/**
@@ -266,23 +262,7 @@ public class EchelonManager {
 	 * @return
 	 */
 	public static boolean isValidEntity(final Entity entity) {
-		return entity instanceof LivingEntity && entity instanceof Enemy;
-	}
-
-	/**
-	 * 
-	 * @param dimension
-	 * @param entity
-	 * @return
-	 */
-	public static boolean isValidEntity(ResourceLocation dimension, Entity entity) {
-		boolean result = false;
-		if (ECHELONS.containsKey(dimension)) {
-			if (!ECHELONS.get(dimension).getMobBlacklist().contains(EntityType.getKey(entity.getType()).toString())) {
-				result = true;
-			}
-		}
-		return result;
+		return entity instanceof Mob;
 	}
 
 	/**
@@ -296,45 +276,42 @@ public class EchelonManager {
 				// determine the altitute (y-value)
 				int y = mob.getBlockY();
 
-				//				Integer echelonLevel = EchelonManager.getLevel(dimension, y);
-				Integer echelonLevel = EchelonManager.getLevel(mob, y);
-
-				//				EEchelons.LOGGER.debug("selected level -> {} for dimension -> {} @ y -> {}", echelonLevel, dimension, y);
-
 				/*
 				 *  apply the attribute modifications
 				 */
-				//				Echelon echelon = getEchelon(dimension);
-				Echelon echelon = getEchelon(mob);
+				Optional<Echelon> echelon = getEchelon(mob);
 
-				if (echelon == null) {
+				if (echelon.isEmpty()) {
 					cap.setLevel(0);
 					return;
 				}
 
+				Integer echelonLevel = echelon.get().getLevel(y);
+//				EEchelons.LOGGER.debug("selected level -> {} for dimension -> {} @ y -> {}", echelonLevel, dimension, y);
+
 				// health
-				modifyHealth(mob, echelonLevel, echelon);
+				modifyHealth(mob, echelonLevel, echelon.get());
 
 				// damage
-				modifyDamage(mob, echelonLevel, echelon);
+				modifyDamage(mob, echelonLevel, echelon.get());
 
 				// armor
-				modifyArmor(mob, echelonLevel, echelon);
+				modifyArmor(mob, echelonLevel, echelon.get());
 
 				// armor
-				modifyArmorToughness(mob, echelonLevel, echelon);
+				modifyArmorToughness(mob, echelonLevel, echelon.get());
 
 				// knockback
-				modifyKnockback(mob, echelonLevel, echelon);
+				modifyKnockback(mob, echelonLevel, echelon.get());
 
 				// knockback resist
-				modifyKnockbackResist(mob, echelonLevel, echelon);
+				modifyKnockbackResist(mob, echelonLevel, echelon.get());
 
 				// speed
-				modifySpeed(mob, echelonLevel, echelon);
+				modifySpeed(mob, echelonLevel, echelon.get());
 
 				// experience
-				modifyXp(mob, echelonLevel, echelon);
+				modifyXp(mob, echelonLevel, echelon.get());
 
 				// update the capability
 				cap.setLevel(echelonLevel);

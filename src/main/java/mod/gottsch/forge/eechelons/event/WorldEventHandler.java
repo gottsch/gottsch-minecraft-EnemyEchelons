@@ -57,11 +57,11 @@ public class WorldEventHandler {
 				/*
 				 * if on the client, request an update from the server
 				 */
-				if (WorldInfo.isClientSide(event.getEntity().level)) {
+				if (WorldInfo.isClientSide(event.getEntity().level())) {
 					// get cap, ensure that level hasn't already been set.
 					if (entity.getCapability(EEchelonsCapabilities.LEVEL_CAPABILITY).map(cap -> cap.getLevel() == -1).orElse(false)) {
-						LevelRequestToServer message = new LevelRequestToServer(entity.getId(), entity.level.dimension().location().toString(),
-								entity.level.dimension().location().toString());
+						LevelRequestToServer message = new LevelRequestToServer(entity.getId(), entity.level().dimension().location().toString(),
+								entity.level().dimension().location().toString());
 						EEchelonsNetwork.CHANNEL.sendToServer(message);
 					}
 				}

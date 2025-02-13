@@ -82,7 +82,6 @@ public final class Config extends AbstractConfig {
 	public static class ClientConfig {
 		public final IntValue hudXOffset;
 		public final IntValue hudYOffset;
-		public final IntValue hudRange;
 		public final BooleanValue useDarkHud;
 		
 		public final ForgeConfigSpec.BooleanValue enableWailaIntegration;
@@ -99,10 +98,6 @@ public final class Config extends AbstractConfig {
 					.comment(" The HUD y-offset.")
 					.defineInRange("hudYOffset", 0, -1000, 1000);
 
-			hudRange = builder
-					.comment(" The distance that the HUD can be seen from (in blocks).")
-					.defineInRange("hudRange", 50, 0, 100);
-			
 			useDarkHud = builder
 					.comment(" Use dark theme HUD.")
 					.define("useDarkThemeHud", true);
@@ -128,6 +123,8 @@ public final class Config extends AbstractConfig {
 	 */
 	public static class ServerConfig {
 		public final BooleanValue showHud;
+		public final BooleanValue hudRangeEnabled;
+		public final IntValue hudRange;
 
 		public ServerConfig(ForgeConfigSpec.Builder builder) {
 			builder.push("general");
@@ -137,8 +134,18 @@ public final class Config extends AbstractConfig {
 
 			// showHud remains in server config so server admin can determine if users are able to see the level or not.
 			showHud = builder
-					.comment("Enable HUD display.")
+					.comment(" Enable HUD display.")
 					.define("showHud", true);
+
+			hudRangeEnabled = builder
+					.comment(" Enable custom HUD range.",
+							" NOTE enabling is more computationally expensive on the client side.")
+					.define("hudRangeEnabled", false);
+
+			hudRange = builder
+					.comment(" The distance that the HUD can be seen from (in blocks).",
+							" Vanilla default = 3.")
+					.defineInRange("hudRange", 3, 0, 100);
 
 			builder.pop();
 		}

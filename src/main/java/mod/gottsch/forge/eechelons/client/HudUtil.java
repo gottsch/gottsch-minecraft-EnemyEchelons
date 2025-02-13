@@ -29,7 +29,8 @@ import mod.gottsch.forge.eechelons.event.HudEventHandler;
 import mod.gottsch.forge.eechelons.integration.ChampionsIntegration;
 import mod.gottsch.forge.eechelons.integration.WailaIntegration;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiComponent;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
@@ -54,7 +55,7 @@ public class HudUtil {
 	 * @param livingEntity
 	 * @return
 	 */
-	public static boolean renderLevelBar(PoseStack matrixStack, final LivingEntity livingEntity) {
+	public static boolean renderLevelBar(GuiGraphics matrixStack, final LivingEntity livingEntity) {
 
 		int level = livingEntity.getCapability(EEchelonsCapabilities.LEVEL_CAPABILITY).map(cap -> cap.getLevel()).orElse(0);
 
@@ -93,13 +94,14 @@ public class HudUtil {
 			HudEventHandler.startY = yOffset + 1 + integrationYOffset;
 
 			// 0 = startx, 0 = starty, 64 = endx, 20 = endy, 64 = width of image, 20 = height of image
-			GuiComponent.blit(matrixStack, xOffset + k + integrationXOffset, yOffset + j + integrationYOffset, 0, 0, 64, 20, 64, 20);
+			matrixStack.blit(HUD_DARK_BG, xOffset + k + integrationXOffset, yOffset + j + integrationYOffset, 0, 0, 64, 20, 64, 20);
 
 			// display the level text
 			String text = "Level " + level;
-			client.font.drawShadow(matrixStack, text,
-					xOffset + (float) (i / 2 - client.font.width(text) / 2) + integrationXOffset,
-					yOffset + (float) (j  + client.font.lineHeight - 3) + integrationYOffset, Color.WHITE.getRGB());
+			matrixStack.drawString(Minecraft.getInstance().font, text,
+					(int)(xOffset + (float) (i / 2 - client.font.width(text) / 2) + integrationXOffset),
+					(int)(yOffset + (float) (j  + client.font.lineHeight - 3) + integrationYOffset),
+					Color.WHITE.getRGB());
 			RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 
 			RenderSystem.disableBlend();
