@@ -28,16 +28,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A holder class for the Echelon list.
+ * A holder class for the Echelon Config list.
  * A holder is required so the toml can be converted into an object properly.
  * ie. The holder is at the file level, and the list is a property in the file.
  * @author Mark Gottschling on Jul 26, 2022
  *
  */
-public class EchelonsHolder {
-	public List<Echelon> echelons;
+public class EchelonConfigsHolder {
+	public List<EchelonConfig> configs;
 	
-	public static class Echelon {
+	public static class EchelonConfig {
 		private String id;
 		private List<String> dimensions;
 		private Double hpFactor = 0.0;
@@ -73,7 +73,7 @@ public class EchelonsHolder {
 		private List<String> mobWhitelist;
 		private List<String> mobBlacklist;
 
-		private List<Strata> stratum;
+		private List<Layer> layers;
 
 		// internal: not set by config, but set my the manager
 		private IntervalTree<WeightedCollection<Double, Integer>> histogram;
@@ -202,19 +202,19 @@ public class EchelonsHolder {
 			this.maxDamage = maxDamage;
 		}
 
-		public List<Strata> getStratum() {
-			return stratum;
+		public List<Layer> getLayers() {
+			return layers;
 		}
 
-		public void setStratum(List<Strata> stratum) {
-			this.stratum = stratum;
+		public void setLayers(List<Layer> layers) {
+			this.layers = layers;
 		}
 
 		@Override
 		public String toString() {
 			return "Echelon [dimensions=" + dimensions + ", hpFactor=" + hpFactor + ", maxHp=" + maxHp
 					+ ", damageFactor=" + damageFactor + ", maxDamage=" + maxDamage + ", mobBlacklist=" + mobBlacklist
-					+ ", stratum=" + stratum + "]";
+					+ ", stratum=" + layers + "]";
 		}
 
 		public Double getXpFactor() {
@@ -378,10 +378,10 @@ public class EchelonsHolder {
 	/*
 	 * 
 	 */
-	public static class Strata {
+	public static class Layer {
 		private Integer min;
 		private Integer max;
-		private List<LevelEntry> histogram;
+		private List<DifficultyEntry> histogram;
 		
 		public Integer getMin() {
 			return min;
@@ -395,27 +395,27 @@ public class EchelonsHolder {
 		public void setMax(Integer max) {
 			this.max = max;
 		}
-		public List<LevelEntry> getHistogram() {
+		public List<DifficultyEntry> getHistogram() {
 			return histogram;
 		}
-		public void setHistogram(List<LevelEntry> histogram) {
+		public void setHistogram(List<DifficultyEntry> histogram) {
 			this.histogram = histogram;
 		}		
 		@Override
 		public String toString() {
-			return "Strata [min=" + min + ", max=" + max + ", histogram=" + histogram + "]";
+			return "Layer [min=" + min + ", max=" + max + ", histogram=" + histogram + "]";
 		}
 	}
 	
-	public static class LevelEntry {
-		private Integer level;
+	public static class DifficultyEntry {
+		private Integer difficulty;
 		private Double weight;
 		
-		public Integer getLevel() {
-			return level;
+		public Integer getDifficulty() {
+			return difficulty;
 		}
-		public void setLevel(Integer level) {
-			this.level = level;
+		public void setDifficulty(Integer difficulty) {
+			this.difficulty = difficulty;
 		}
 		public Double getWeight() {
 			return weight;
@@ -426,7 +426,7 @@ public class EchelonsHolder {
 		
 		@Override
 		public String toString() {
-			return "LevelEntry [level=" + level + ", weight=" + weight + "]";
+			return "DifficultyEntry [difficulty=" + difficulty + ", weight=" + weight + "]";
 		}		
 	}
 }

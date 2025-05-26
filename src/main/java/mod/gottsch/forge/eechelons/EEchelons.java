@@ -120,7 +120,7 @@ public class EEchelons {
 
 				if (spec == Config.ECHELONS_SPEC) {
 					// transform/copy the toml into the config
-					Config.transformEchelons(commentedConfig);
+					Config.transformEchelonConfigs(commentedConfig);
 					EchelonManager.build();					
 				} 
 			}

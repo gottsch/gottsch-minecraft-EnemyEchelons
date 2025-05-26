@@ -26,7 +26,6 @@ import java.util.function.Predicate;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
-import mod.gottsch.forge.eechelons.EEchelons;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -43,11 +42,9 @@ import mod.gottsch.forge.gottschcore.random.WeightedCollection;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.monster.Enemy;
 import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
 import net.minecraftforge.fml.util.ObfuscationReflectionHelper.UnableToAccessFieldException;
 
@@ -94,7 +91,7 @@ public class EchelonManager {
 
 		ECHELONS_BY_MOB.clear();
 
-		List<Echelon> echelons = Config.echelons;
+		List<Echelon> echelons = Config.echelonConfigs;
 		if (ObjectUtils.isEmpty(echelons)) {
 			return;
 		}

@@ -17,22 +17,18 @@
  */
 package mod.gottsch.forge.eechelons.config;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.lang3.tuple.Pair;
-
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.conversion.ObjectConverter;
-
 import mod.gottsch.forge.eechelons.EEchelons;
-import mod.gottsch.forge.eechelons.config.EchelonsHolder.Echelon;
 import mod.gottsch.forge.gottschcore.config.AbstractConfig;
-import mod.gottsch.forge.gottschcore.config.AbstractConfig.Logging;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.common.ForgeConfigSpec.BooleanValue;
 import net.minecraftforge.common.ForgeConfigSpec.IntValue;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
+import org.apache.commons.lang3.tuple.Pair;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 
@@ -155,23 +151,28 @@ public final class Config extends AbstractConfig {
 	 * Echelons Config
 	 */
 	public static final ForgeConfigSpec ECHELONS_SPEC;
-	public static final EchelonsConfig ECHELONS_CONFIG;
+	public static final EchelonsFileConfig ECHELONS_CONFIG;
 	/*
 	 * list of echelon configurations
 	 */
-	public static List<Echelon> echelons;
+	public static List<EchelonConfigsHolder.EchelonConfig> echelonConfigs;
 
 	static {
-		final Pair<EchelonsConfig, ForgeConfigSpec> specPair = new ForgeConfigSpec.Builder()
-				.configure(EchelonsConfig::new);
+		final Pair<EchelonsFileConfig, ForgeConfigSpec> specPair = new ForgeConfigSpec.Builder()
+				.configure(EchelonsFileConfig::new);
 		ECHELONS_SPEC = specPair.getRight();
 		ECHELONS_CONFIG = specPair.getLeft();
 	}
 
-	public static class EchelonsConfig {
-		public EchelonsHolder echelonsHolder;
-		public EchelonsConfig(ForgeConfigSpec.Builder builder) {
-			builder.comment(" list of echelons").define("echelons", new ArrayList<>());
+	/**
+	 * class for the echelons_config_xxx_vX.toml config file.
+	 */
+	public static class EchelonsFileConfig {
+		public EchelonConfigsHolder echelonConfigsHolder;
+		public EchelonsFileConfig(ForgeConfigSpec.Builder builder) {
+			// NOTE this definition name must match the property in the EchelonConfigsHolder class
+			// and the property in the .toml config file.
+			builder.comment(" list of echelon configs").define("configs", new ArrayList<>());
 			builder.build();
 		}
 	}
@@ -180,11 +181,11 @@ public final class Config extends AbstractConfig {
 	 * 
 	 * @param configData
 	 */
-	public static void transformEchelons(CommentedConfig configData) {
+	public static void transformEchelonConfigs(CommentedConfig configData) {
 		// convert the data to an object and set the holder in the _CONFIG
-		ECHELONS_CONFIG.echelonsHolder = new ObjectConverter().toObject(configData, EchelonsHolder::new);
+		ECHELONS_CONFIG.echelonConfigsHolder = new ObjectConverter().toObject(configData, EchelonConfigsHolder::new);
 		// get the list from the holder and set the config property
-		echelons = ECHELONS_CONFIG.echelonsHolder.echelons;
+		echelonConfigs = ECHELONS_CONFIG.echelonConfigsHolder.configs;
 	}
 	
 	@Override
