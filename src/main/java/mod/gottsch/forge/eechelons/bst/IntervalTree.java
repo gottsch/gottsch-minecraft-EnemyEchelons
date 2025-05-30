@@ -19,6 +19,27 @@
  */
 package mod.gottsch.forge.eechelons.bst;
 
+/*
+ * Synchronization Strategy:
+ * All public methods that access or modify the tree structure (e.g., insert, delete, getRoot, setRoot)
+ * or perform traversals (e.g., getOverlapping, find, list) are synchronized on the instance.
+ * This provides thread safety with a coarse-grained lock.
+ *
+ * Rationale:
+ * - Guarantees thread safety in concurrent environments.
+ * - Simpler to implement and verify than more fine-grained locking mechanisms.
+ *
+ * Potential Considerations for Future Performance Optimization:
+ * - If profiling reveals these synchronized methods as a significant bottleneck due to contention,
+ *   especially in read-heavy scenarios, migrating to a java.util.concurrent.locks.ReadWriteLock
+ *   could be considered to allow for concurrent read access.
+ * - For specific use cases where a tree instance is effectively immutable after its initial construction
+ *   and safe publication, the synchronization on read-only methods might be overly cautious but
+ *   is retained for general-purpose safety.
+ *
+ * Current Recommendation:
+ * Retain current synchronized approach unless specific performance issues are demonstrated.
+ */
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
@@ -96,37 +117,111 @@ public class IntervalTree<D> {
 	 * @param target
 	 * @return
 	 */
-	private Interval<D> delete(Interval<D> interval, Interval<D> target) {
-		EEchelons.LOGGER.debug("delete interval -> {}, target -> {}", interval, target);
-		if (interval == null) {
-			return interval;
+	private Interval<D> delete(Interval<D> current, Interval<D> target) {
+		EEchelons.LOGGER.debug("delete current -> {}, target -> {}", current, target);
+		if (current == null) {
+			return null;
 		}
 
-		if (interval.compareTo(target) < 0) {
-			interval.setRight(delete(interval.getRight(), target));
+		int comparison = current.compareTo(target);
+
+		if (comparison > 0) { // target is smaller, go left
+			current.setLeft(delete(current.getLeft(), target));
+		} else if (comparison < 0) { // target is larger, go right
+			current.setRight(delete(current.getRight(), target));
+		} else { // current is the node to be deleted
+			// Node with no children or only one child
+			if (current.getLeft() == null && current.getRight() == null) {
+				EEchelons.LOGGER.debug("deleting node with no children: {}", current);
+				return null; // No children
+			}
+			if (current.getLeft() == null) {
+				EEchelons.LOGGER.debug("deleting node with only right child: {}", current);
+				return current.getRight(); // Only right child
+			}
+			if (current.getRight() == null) {
+				EEchelons.LOGGER.debug("deleting node with only left child: {}", current);
+				return current.getLeft(); // Only left child
+			}
+
+			// Node with two children: Get the inorder successor (smallest in the right subtree)
+			EEchelons.LOGGER.debug("deleting node with two children: {}", current);
+			Interval<D> successor = findMin(current.getRight());
+			EEchelons.LOGGER.debug("successor found: {}", successor);
+
+			// Copy the inorder successor's content to this node
+			// NOTE: This requires Interval to have setStart, setEnd methods.
+			current.setStart(successor.getStart());
+			current.setEnd(successor.getEnd());
+			current.setData(successor.getData());
+			EEchelons.LOGGER.debug("current node after copying successor data: {}", current);
+
+			// Delete the inorder successor from the right subtree
+			// Create a target interval that exactly matches the successor for deletion
+			Interval<D> successorTarget = new Interval<>(successor.getStart(), successor.getEnd(), successor.getData());
+			current.setRight(delete(current.getRight(), successorTarget));
 		}
-		else if (interval.compareTo(target) > 0) {
-			interval.setLeft(delete(interval.getLeft(), target));
+
+		// Update min/max properties of the current node after potential child changes
+		updateNodeProperties(current);
+		EEchelons.LOGGER.debug("current node after updateNodeProperties: {}", current);
+		return current;
+	}
+
+	/**
+	 * Finds the node with the smallest 'start' value in the subtree rooted at node.
+	 * Assumes node is not null.
+	 * @param node The root of the subtree to search.
+	 * @return The node with the smallest value.
+	 */
+	private Interval<D> findMin(Interval<D> node) {
+		while (node.getLeft() != null) {
+			node = node.getLeft();
 		}
-		else {
-			// node with no leaf nodes
-			if (interval.getLeft() == null && interval.getRight() == null) {
-				return null;
-			}
-			else if (interval.getLeft() == null) {
-				return interval.getRight();
-			}
-			else if (interval.getRight() == null) {
-				return interval.getLeft();
-			}
-			else {
-				// insert right tree into left tree
-				insert(interval.getLeft(), interval.getRight());
-				// return the left tree
-				return interval.getLeft();
-			}
+		return node;
+	}
+
+	/**
+	 * Updates the min and max properties of a node based on its own interval's start/end
+	 * and the min/max properties of its children.
+	 * @param node The node to update.
+	 */
+	private void updateNodeProperties(Interval<D> node) {
+		if (node == null) {
+			return;
 		}
-		return interval;
+
+		Integer currentMin = node.getStart();
+		Integer currentMax = node.getEnd();
+
+		if (node.getLeft() != null) {
+			// The children's min/max should already be correct due to recursive calls to delete
+			// and subsequent updateNodeProperties calls on them.
+			if (node.getLeft().getMin() != null) { // Child's min could be null if it was invalid before (though less likely with this fix)
+				currentMin = Math.min(currentMin, node.getLeft().getMin());
+			} else { // if child's min is null, use child's start
+                                currentMin = Math.min(currentMin, node.getLeft().getStart());
+                        }
+			if (node.getLeft().getMax() != null) {
+				currentMax = Math.max(currentMax, node.getLeft().getMax());
+			} else { // if child's max is null, use child's end
+                                currentMax = Math.max(currentMax, node.getLeft().getEnd());
+                        }
+		}
+		if (node.getRight() != null) {
+			if (node.getRight().getMin() != null) {
+				currentMin = Math.min(currentMin, node.getRight().getMin());
+			} else {
+                                currentMin = Math.min(currentMin, node.getRight().getStart());
+                        }
+			if (node.getRight().getMax() != null) {
+				currentMax = Math.max(currentMax, node.getRight().getMax());
+			} else {
+                                currentMax = Math.max(currentMax, node.getRight().getEnd());
+                        }
+		}
+		node.setMin(currentMin);
+		node.setMax(currentMax);
 	}
 	
 	public List<Interval<D>> getOverlapping(Interval<D> interval, Interval<D> testInterval, boolean findFast) {
@@ -214,7 +309,14 @@ public class IntervalTree<D> {
 		}
 
 		// walk the left branch
-		if ((interval.getLeft() != null) && (interval.getLeft().getMax() > testInterval.getStart())) { // TESTING replaced >= with >
+		// For a strict overlap (no borders), an interval in the left subtree (I_L)
+		// must satisfy I_L.end > testInterval.start.
+		// Thus, the maximum end point in the entire left subtree (interval.getLeft().getMax())
+		// must be strictly greater than testInterval.start to warrant searching there.
+		// If interval.getLeft().getMax() == testInterval.start, any interval providing that max
+		// would only touch testInterval's border, which is excluded by "no border".
+		// This contrasts with border-inclusive searches where '>=' would be used.
+		if ((interval.getLeft() != null) && (interval.getLeft().getMax() > testInterval.getStart())) {
 			if (this.checkOverlapNoBorder(interval.getLeft(), testInterval, results, findFast) && findFast) {
 				return true;
 			}

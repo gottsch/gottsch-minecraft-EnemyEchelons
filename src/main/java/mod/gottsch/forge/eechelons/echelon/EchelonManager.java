@@ -46,8 +46,10 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier; // Added
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.Enemy;
+import java.util.UUID; // Added
 import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
 import net.minecraftforge.fml.util.ObfuscationReflectionHelper.UnableToAccessFieldException;
 
@@ -57,6 +59,22 @@ import net.minecraftforge.fml.util.ObfuscationReflectionHelper.UnableToAccessFie
  *
  */
 public class EchelonManager {
+	// Define UUIDs for attribute modifiers
+	// Health: "0b8a7a82-325a-4785-9798-c28060aa55a3"
+	// Damage: "5a1a9a4c-6f4f-4c62-9a68-09b969dc68ac"
+	// Armor: "c3e0f5a0-5c9e-4f72-978d-5c6d7c9a8b7f"
+	// Armor Toughness: "d4f1e8a0-6b8d-4c3a-9a6b-1d2c3e4f5a6b"
+	// Movement Speed: "a5b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d"
+	// Attack Knockback: "b6c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e"
+	// Knockback Resistance: "c7d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6f7a"
+	private static final UUID ECHELON_MAX_HEALTH_MODIFIER_ID = UUID.fromString("0b8a7a82-325a-4785-9798-c28060aa55a3");
+	private static final UUID ECHELON_ATTACK_DAMAGE_MODIFIER_ID = UUID.fromString("5a1a9a4c-6f4f-4c62-9a68-09b969dc68ac");
+	private static final UUID ECHELON_ARMOR_MODIFIER_ID = UUID.fromString("c3e0f5a0-5c9e-4f72-978d-5c6d7c9a8b7f");
+	private static final UUID ECHELON_ARMOR_TOUGHNESS_MODIFIER_ID = UUID.fromString("d4f1e8a0-6b8d-4c3a-9a6b-1d2c3e4f5a6b");
+	private static final UUID ECHELON_MOVEMENT_SPEED_MODIFIER_ID = UUID.fromString("a5b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d");
+	private static final UUID ECHELON_ATTACK_KNOCKBACK_MODIFIER_ID = UUID.fromString("b6c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e");
+	private static final UUID ECHELON_KNOCKBACK_RESISTANCE_MODIFIER_ID = UUID.fromString("c7d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6f7a");
+
 	// f_21364_ => xpReward
 	private static final String XP_REWARD_FIELDNAME = "f_21364_";
 	private static final ResourceLocation ALL_DIMENSION = new ResourceLocation(".", ".");
@@ -109,15 +127,28 @@ public class EchelonManager {
 			}
 
 			// scan the mob white/black list to see if there are any wildcards and move to mod lists.
-			Predicate<String> isWildcard = mob -> mob.contains(":*");
-			echelon.getMobWhitelist().stream().filter(isWildcard)
-					.forEach(mob -> {
-						echelon.getModWhitelist().add(mob.substring(0, mob.indexOf(":")));
-					});
-			echelon.getMobBlacklist().stream().filter(isWildcard)
-					.forEach(mob -> {
-						echelon.getModBlacklist().add(mob.substring(0, mob.indexOf(":")));
-					});
+			Predicate<String> isWildcard = mobId -> mobId.contains(":*");
+			List<String> modsToAddForWhitelist = new java.util.ArrayList<>();
+			List<String> modsToAddForBlacklist = new java.util.ArrayList<>();
+
+			for (String mobId : echelon.getMobWhitelist()) {
+				if (isWildcard.test(mobId)) {
+					modsToAddForWhitelist.add(mobId.substring(0, mobId.indexOf(":")));
+				}
+			}
+			for (String mobId : echelon.getMobBlacklist()) {
+				if (isWildcard.test(mobId)) {
+					modsToAddForBlacklist.add(mobId.substring(0, mobId.indexOf(":")));
+				}
+			}
+
+			if (!modsToAddForWhitelist.isEmpty()) {
+				echelon.getModWhitelist().addAll(modsToAddForWhitelist);
+			}
+			if (!modsToAddForBlacklist.isEmpty()) {
+				echelon.getModBlacklist().addAll(modsToAddForBlacklist);
+			}
+
 			echelon.getMobWhitelist().removeIf(isWildcard);
 			echelon.getMobBlacklist().removeIf(isWildcard);
 
@@ -149,69 +180,47 @@ public class EchelonManager {
 				echelon.getDimensions().add(".");
 			}
 
-//			if (ObjectUtils.isEmpty(echelon.getDimensions())) {
-//				if (!echelon.getModWhitelist().isEmpty()) {
-//					echelon.getModWhitelist().forEach(mod -> {
-//						// create a key pair
-//						Pair<ResourceLocation, String> keyPair = new ImmutablePair<>(ALL_DIMENSION, mod);
-//						if (!ECHELONS_BY_MOD.containsKey(keyPair)) {
-//							ECHELONS_BY_MOD.put(keyPair, echelon);
-////							HISTOGRAM_TREES_BY_MOD.put(keyPair, tree);
-//						}
-//					});
-//				}
-//				else if (!echelon.getMobWhitelist().isEmpty()) {
-//					echelon.getMobWhitelist().forEach(mob -> {
-//						// create a key pair
-//						Pair<ResourceLocation, ResourceLocation> keyPair = new ImmutablePair<>(ALL_DIMENSION, new ResourceLocation(mob));
-//						if (!ECHELONS_BY_MOB.containsKey(keyPair)) {
-//							ECHELONS_BY_MOB.put(keyPair, echelon);
-////							HISTOGRAM_TREES_BY_MOB.put(keyPair, tree);
-//						}
-//					});
-//
-//				}
-//				else {
-//					ECHELONS.put(ALL_DIMENSION, echelon);
-////					HISTOGRAM_TREES.put(ALL_DIMENSION, tree);
-//				}
-//			}
-//			else {
-				// build
-				echelon.getDimensions().forEach(dimension -> {
-					ResourceLocation dimensionKey;
-					if (dimension.equals(".") || dimension.equals("*") || dimension.equals("*:*")) {
-						dimensionKey = ALL_DIMENSION;
-					} else {
-						dimensionKey = new ResourceLocation(dimension);
-					}
+			// For each dimension this Echelon applies to, categorize it.
+			// The categorization establishes a precedence for Echelon lookup:
+			// 1. Mod-specific whitelist (ECHELONS_BY_MOD): If the Echelon has mod-specific rules.
+			// 2. Mob-specific whitelist (ECHELONS_BY_MOB): If no mod rules, but has mob-specific rules.
+			// 3. General dimension Echelon (ECHELONS): If neither mod nor mob specific rules.
+			// Note: The actual lookup in getEchelon() prioritizes mob-specific entries first over any dimension,
+			// then falls back to searching general ECHELONS for the dimension (which includes those originally mod-specific).
+			echelon.getDimensions().forEach(dimension -> {
+				ResourceLocation dimensionKey;
+				if (dimension.equals(".") || dimension.equals("*") || dimension.equals("*:*")) {
+					dimensionKey = ALL_DIMENSION;
+				} else {
+					dimensionKey = new ResourceLocation(dimension);
+				}
 
-					if (!echelon.getModWhitelist().isEmpty()) {
-						echelon.getModWhitelist().forEach(mod -> {
-							// create a key pair
-							Pair<ResourceLocation, String> keyPair = new ImmutablePair<>(dimensionKey, mod);
-							if (!ECHELONS_BY_MOD.containsKey(keyPair)) {
-								ECHELONS_BY_MOD.put(keyPair, echelon);
-//								HISTOGRAM_TREES_BY_MOD.put(keyPair, tree);
-							}
-						});
-					}
-					else if (!echelon.getMobWhitelist().isEmpty()) {
-						echelon.getMobWhitelist().forEach(mob -> {
-							// create a key pair
-							Pair<ResourceLocation, ResourceLocation> keyPair = new ImmutablePair<>(dimensionKey, new ResourceLocation(mob));
-							if (!ECHELONS_BY_MOB.containsKey(keyPair)) {
-								ECHELONS_BY_MOB.put(keyPair, echelon);
-//								HISTOGRAM_TREES_BY_MOB.put(keyPair, tree);
-							}
-						});
-					}
-					else {
-						ECHELONS.put(dimensionKey, echelon);
-//						HISTOGRAM_TREES.put(dimensionKey, tree);
-					}
-				});
-//			}
+				// If Echelon has a mod whitelist, it's primarily classified by mod.
+				if (!echelon.getModWhitelist().isEmpty()) {
+					echelon.getModWhitelist().forEach(mod -> {
+						Pair<ResourceLocation, String> keyPair = new ImmutablePair<>(dimensionKey, mod);
+						// Only add if this specific dimension-mod pair isn't already defined
+						// (first Echelon definition encountered for this pair takes precedence).
+						if (!ECHELONS_BY_MOD.containsKey(keyPair)) {
+							ECHELONS_BY_MOD.put(keyPair, echelon);
+						}
+					});
+				}
+				// Else if Echelon has a mob whitelist, it's classified by mob.
+				else if (!echelon.getMobWhitelist().isEmpty()) {
+					echelon.getMobWhitelist().forEach(mob -> {
+						Pair<ResourceLocation, ResourceLocation> keyPair = new ImmutablePair<>(dimensionKey, new ResourceLocation(mob));
+						// Only add if this specific dimension-mob pair isn't already defined.
+						if (!ECHELONS_BY_MOB.containsKey(keyPair)) {
+							ECHELONS_BY_MOB.put(keyPair, echelon);
+						}
+					});
+				}
+				// Else, it's a general Echelon for the dimension.
+				else {
+					ECHELONS.put(dimensionKey, echelon);
+				}
+			});
 		});
 	}
 
@@ -310,43 +319,31 @@ public class EchelonManager {
 				// speed
 				modifySpeed(mob, echelonLevel, echelon.get());
 
-				// experience
-				modifyXp(mob, echelonLevel, echelon.get());
-
 				// update the capability
 				cap.setLevel(echelonLevel);
 			}
 		});
 	}
 
-	private static void modifySpeed(Mob mob, Integer level, Echelon echelon) {		
+	private static void modifySpeed(Mob mob, Integer level, Echelon echelon) {
 		if (echelon.hasSpeedFactor()) {
 			AttributeInstance attribute = mob.getAttribute(Attributes.MOVEMENT_SPEED);
 			if (attribute != null) {
-				double speed = 1.0 + (echelon.getSpeedFactor() * level);
-				double newSpeed = attribute.getBaseValue() * speed;
-				if (echelon.getMaxDamage() != null) {
-					// TODO what if max speed <= 0
-					newSpeed = Math.min(newSpeed, echelon.getMaxSpeed());
-				}
-				attribute.setBaseValue(newSpeed);
-				//			EEchelons.LOGGER.debug("mob new speed -> {}", mob.getAttributeValue(Attributes.MOVEMENT_SPEED));
-			}	
-		}
-	}
+				attribute.removeModifier(ECHELON_MOVEMENT_SPEED_MODIFIER_ID);
 
-	private static void modifyXp(Mob mob, Integer level, Echelon echelon) {
-		if (echelon.hasXpFactor()) {
-			double xp = 1.0 + (echelon.getXpFactor() * level);
-			try {
-				int xpReward = (int)ObfuscationReflectionHelper.getPrivateValue(Mob.class, mob, XP_REWARD_FIELDNAME);
-				double newXpReward = xpReward * xp;
-				if (echelon.getMaxXp() != null) {
-					newXpReward = Math.min(newXpReward, echelon.getMaxXp());
+				double speedMultiplier = 1.0 + (echelon.getSpeedFactor() * level);
+				double modifierAmount = speedMultiplier - 1.0;
+				
+				if (Math.abs(modifierAmount) > 1.0E-7) {
+					AttributeModifier speedModifier = new AttributeModifier(
+							ECHELON_MOVEMENT_SPEED_MODIFIER_ID,
+							"EchelonMovementSpeed",
+							modifierAmount,
+							AttributeModifier.Operation.MULTIPLY_BASE
+					);
+					attribute.addPermanentModifier(speedModifier);
 				}
-				ObfuscationReflectionHelper.setPrivateValue(Mob.class, mob, (int)newXpReward, XP_REWARD_FIELDNAME);
-			} catch(UnableToAccessFieldException e	) {
-				return;
+				// EEchelons.LOGGER.debug("mob new speed -> {}", mob.getAttributeValue(Attributes.MOVEMENT_SPEED));
 			}
 		}
 	}
@@ -355,12 +352,24 @@ public class EchelonManager {
 		if (echelon.hasHpFactor()) {
 			AttributeInstance attribute = mob.getAttribute(Attributes.MAX_HEALTH);
 			if (attribute != null) {
-				double health = 1.0 + (echelon.getHpFactor() * level);
-				double newHealth = mob.getMaxHealth() * health;
-				if (echelon.getMaxHp() != null && echelon.getMaxHp() > 0.0) {
-					newHealth = Math.min(newHealth, echelon.getMaxHp());
+				// Remove any existing modifier from this mod
+				attribute.removeModifier(ECHELON_MAX_HEALTH_MODIFIER_ID);
+
+				double healthMultiplier = 1.0 + (echelon.getHpFactor() * level);
+				double modifierAmount = healthMultiplier - 1.0;
+
+				// Apply new modifier only if it has a significant effect
+				if (Math.abs(modifierAmount) > 1.0E-7) { // Check if modifierAmount is not effectively zero
+					AttributeModifier healthModifier = new AttributeModifier(
+							ECHELON_MAX_HEALTH_MODIFIER_ID,
+							"EchelonMaxHealth", // Name for debugging/identification
+							modifierAmount,
+							AttributeModifier.Operation.MULTIPLY_BASE
+					);
+					attribute.addPermanentModifier(healthModifier);
 				}
-				attribute.setBaseValue(newHealth);
+				
+				// Heal the mob to its new maximum health
 				mob.setHealth(mob.getMaxHealth());
 //				EEchelons.LOGGER.debug("mob new health -> {}", mob.getMaxHealth());
 			}
@@ -371,12 +380,22 @@ public class EchelonManager {
 		if (echelon.hasDamageFactor()) {
 			AttributeInstance attribute = mob.getAttribute(Attributes.ATTACK_DAMAGE);
 			if (attribute != null) {
-				double damage = 1.0 + (echelon.getDamageFactor() * level);
-				double newDamage = attribute.getBaseValue() * damage;
-				if (echelon.getMaxDamage() != null) {
-					newDamage = Math.min(newDamage, echelon.getMaxDamage());
+				// Remove any existing modifier from this mod
+				attribute.removeModifier(ECHELON_ATTACK_DAMAGE_MODIFIER_ID);
+				
+				double damageMultiplier = 1.0 + (echelon.getDamageFactor() * level);
+				double modifierAmount = damageMultiplier - 1.0;
+
+				// Apply new modifier only if it has a significant effect
+				if (Math.abs(modifierAmount) > 1.0E-7) { // Check if modifierAmount is not effectively zero
+					AttributeModifier damageModifier = new AttributeModifier(
+							ECHELON_ATTACK_DAMAGE_MODIFIER_ID,
+							"EchelonAttackDamage", // Name for debugging/identification
+							modifierAmount,
+							AttributeModifier.Operation.MULTIPLY_BASE
+					);
+					attribute.addPermanentModifier(damageModifier);
 				}
-				attribute.setBaseValue(newDamage);
 //				EEchelons.LOGGER.debug("mob new damage -> {}", mob.getAttributeValue(Attributes.ATTACK_DAMAGE));
 			}
 		}
@@ -386,13 +405,21 @@ public class EchelonManager {
 		if (echelon.hasArmorFactor()) {
 			AttributeInstance attribute = mob.getAttribute(Attributes.ARMOR);
 			if (attribute != null) {
-				double armor = 1.0 + (echelon.getArmorFactor() * level);
-				double newArmor = attribute.getBaseValue() * armor;
-				if (echelon.getMaxArmor() != null) {
-					newArmor = Math.min(newArmor, echelon.getMaxArmor());
+				attribute.removeModifier(ECHELON_ARMOR_MODIFIER_ID);
+
+				double armorMultiplier = 1.0 + (echelon.getArmorFactor() * level);
+				double modifierAmount = armorMultiplier - 1.0;
+
+				if (Math.abs(modifierAmount) > 1.0E-7) {
+					AttributeModifier armorModifier = new AttributeModifier(
+							ECHELON_ARMOR_MODIFIER_ID,
+							"EchelonArmor",
+							modifierAmount,
+							AttributeModifier.Operation.MULTIPLY_BASE
+					);
+					attribute.addPermanentModifier(armorModifier);
 				}
-				attribute.setBaseValue(newArmor);
-				//		EEchelons.LOGGER.debug("mob new armor -> {}", mob.getAttributeValue(Attributes.ARMOR));
+				// EEchelons.LOGGER.debug("mob new armor -> {}", mob.getAttributeValue(Attributes.ARMOR));
 			}
 		}
 	}
@@ -401,13 +428,21 @@ public class EchelonManager {
 		if (echelon.hasArmorToughnessFactor()) {
 			AttributeInstance attribute = mob.getAttribute(Attributes.ARMOR_TOUGHNESS);
 			if (attribute != null) {
-				double armor = 1.0 + (echelon.getArmorToughnessFactor() * level);
-				double newArmor = attribute.getBaseValue() * armor;
-				if (echelon.getMaxArmorToughness() != null) {
-					newArmor = Math.min(newArmor, echelon.getMaxArmorToughness());
+				attribute.removeModifier(ECHELON_ARMOR_TOUGHNESS_MODIFIER_ID);
+
+				double armorToughnessMultiplier = 1.0 + (echelon.getArmorToughnessFactor() * level);
+				double modifierAmount = armorToughnessMultiplier - 1.0;
+
+				if (Math.abs(modifierAmount) > 1.0E-7) {
+					AttributeModifier armorToughnessModifier = new AttributeModifier(
+							ECHELON_ARMOR_TOUGHNESS_MODIFIER_ID,
+							"EchelonArmorToughness",
+							modifierAmount,
+							AttributeModifier.Operation.MULTIPLY_BASE
+					);
+					attribute.addPermanentModifier(armorToughnessModifier);
 				}
-				attribute.setBaseValue(newArmor);
-				//		EEchelons.LOGGER.debug("mob new armor toughness -> {}", mob.getAttributeValue(Attributes.ARMOR_TOUGHNESS));
+				// EEchelons.LOGGER.debug("mob new armor toughness -> {}", mob.getAttributeValue(Attributes.ARMOR_TOUGHNESS));
 			}
 		}
 	}
@@ -416,13 +451,20 @@ public class EchelonManager {
 		if (echelon.hasKnockbackIncrement()) {
 			AttributeInstance attribute = mob.getAttribute(Attributes.ATTACK_KNOCKBACK);
 			if (attribute != null) {
-				double knockback = echelon.getKnockbackIncrement() * level;
-				double newKnockback = attribute.getBaseValue() + knockback;
-				if (echelon.getMaxKnockback() != null) {
-					newKnockback = Math.min(newKnockback, echelon.getMaxKnockback());
+				attribute.removeModifier(ECHELON_ATTACK_KNOCKBACK_MODIFIER_ID);
+
+				double modifierAmount = echelon.getKnockbackIncrement() * level;
+
+				if (Math.abs(modifierAmount) > 1.0E-7) {
+					AttributeModifier knockbackModifier = new AttributeModifier(
+							ECHELON_ATTACK_KNOCKBACK_MODIFIER_ID,
+							"EchelonAttackKnockback",
+							modifierAmount,
+							AttributeModifier.Operation.ADDITION
+					);
+					attribute.addPermanentModifier(knockbackModifier);
 				}
-				attribute.setBaseValue(newKnockback);
-				//			EEchelons.LOGGER.debug("mob new knockback -> {}", mob.getAttributeValue(Attributes.ATTACK_KNOCKBACK));
+				// EEchelons.LOGGER.debug("mob new knockback -> {}", mob.getAttributeValue(Attributes.ATTACK_KNOCKBACK));
 			}
 		}
 	}
@@ -431,13 +473,20 @@ public class EchelonManager {
 		if (echelon.hasKnockbackResistIncrement()) {
 			AttributeInstance attribute = mob.getAttribute(Attributes.KNOCKBACK_RESISTANCE);
 			if (attribute != null) {
-				double knockback = echelon.getKnockbackResistIncrement() * level;
-				double newKnockback = attribute.getBaseValue() + knockback;
-				if (echelon.getMaxKnockbackResist() != null) {
-					newKnockback = Math.min(newKnockback, echelon.getMaxKnockbackResist());
+				attribute.removeModifier(ECHELON_KNOCKBACK_RESISTANCE_MODIFIER_ID);
+				
+				double modifierAmount = echelon.getKnockbackResistIncrement() * level;
+				
+				if (Math.abs(modifierAmount) > 1.0E-7) {
+					AttributeModifier knockbackResistModifier = new AttributeModifier(
+							ECHELON_KNOCKBACK_RESISTANCE_MODIFIER_ID,
+							"EchelonKnockbackResistance",
+							modifierAmount,
+							AttributeModifier.Operation.ADDITION
+					);
+					attribute.addPermanentModifier(knockbackResistModifier);
 				}
-				attribute.setBaseValue(newKnockback);
-				//			EEchelons.LOGGER.debug("mob new knockback resist -> {}", mob.getAttributeValue(Attributes.KNOCKBACK_RESISTANCE));
+				// EEchelons.LOGGER.debug("mob new knockback resist -> {}", mob.getAttributeValue(Attributes.KNOCKBACK_RESISTANCE));
 			}
 		}
 	}

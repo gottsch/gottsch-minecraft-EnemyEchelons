@@ -25,7 +25,13 @@ import mod.gottsch.forge.eechelons.network.LevelRequestToServer;
 import mod.gottsch.forge.gottschcore.world.WorldInfo;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.LivingEntity; // Added
+import net.minecraft.world.entity.Entity; // Added
+import java.util.Optional; // Added
+import mod.gottsch.forge.eechelons.capability.EEchelonsCapabilities; // Added
+import mod.gottsch.forge.eechelons.config.EchelonsHolder; // Added
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
+import net.minecraftforge.event.entity.living.LivingExperienceDropEvent; // Added
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
@@ -71,6 +77,47 @@ public class WorldEventHandler {
 				}
 			}
 		}
-	}
+		
+		/**
+		 * Handles the LivingExperienceDropEvent to modify XP based on Echelon.
+		 * @param event The event.
+		 */
+		@SubscribeEvent
+		public static void onExperienceDrop(LivingExperienceDropEvent event) {
+			Entity entity = event.getEntity();
+			if (!(entity instanceof Mob mob)) {
+				return;
+			}
 
+			Optional<mod.gottsch.forge.eechelons.config.EchelonsHolder.Echelon> echelonOpt = EchelonManager.getEchelon(mob);
+			if (echelonOpt.isEmpty()) {
+				return;
+			}
+
+			mod.gottsch.forge.eechelons.config.EchelonsHolder.Echelon echelon = echelonOpt.get();
+
+			if (echelon.hasXpFactor()) {
+				// Get the echelon level from the capability
+				mob.getCapability(EEchelonsCapabilities.LEVEL_CAPABILITY).ifPresent(cap -> {
+					int echelonLevel = cap.getLevel();
+					if (echelonLevel < 0) {
+						// Level not yet calculated, or calculation failed.
+						// For now, we'll skip XP modification.
+						// Alternatively, could trigger EchelonManager.applyModifications(mob) here
+						// or use a default level.
+						return;
+					}
+
+					double xpFactor = 1.0 + (echelon.getXpFactor() * echelonLevel);
+					double newXpReward = event.getOriginalExperience() * xpFactor;
+
+					if (echelon.getMaxXp() != null) {
+						newXpReward = Math.min(newXpReward, echelon.getMaxXp());
+					}
+					
+					event.setDroppedExperience((int) newXpReward);
+				});
+			}
+		}
+	}
 }

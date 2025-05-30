@@ -1,5 +1,26 @@
 package mod.gottsch.forge.eechelons.bst;
 
+/*
+ * Synchronization Strategy:
+ * All public methods that access or modify the tree structure (e.g., insert, delete, getRoot, setRoot)
+ * or perform traversals (e.g., getOverlapping, find, list) are synchronized on the instance.
+ * This provides thread safety with a coarse-grained lock.
+ *
+ * Rationale:
+ * - Guarantees thread safety in concurrent environments.
+ * - Simpler to implement and verify than more fine-grained locking mechanisms.
+ *
+ * Potential Considerations for Future Performance Optimization:
+ * - If profiling reveals these synchronized methods as a significant bottleneck due to contention,
+ *   especially in read-heavy scenarios, migrating to a java.util.concurrent.locks.ReadWriteLock
+ *   could be considered to allow for concurrent read access.
+ * - For specific use cases where a tree instance is effectively immutable after its initial construction
+ *   and safe publication, the synchronization on read-only methods might be overly cautious but
+ *   is retained for general-purpose safety.
+ *
+ * Current Recommendation:
+ * Retain current synchronized approach unless specific performance issues are demonstrated.
+ */
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;

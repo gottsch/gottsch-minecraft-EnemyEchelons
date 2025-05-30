@@ -62,8 +62,12 @@ public class Interval<D> implements Comparable<Interval<D>> {
 	public Interval(Integer start, Integer end) {
 		this.start = start;
 		this.end = end;
-		this.min = start < end ? start : end;
-		this.max = start > end ? start : end;
+		// Initialize min/max to the interval's own bounds.
+		// These will be updated by updateNodeProperties in IntervalTree
+		// or during insertion to reflect subtree min/max.
+		// For a new standalone interval, its own start/end are its min/max.
+		this.min = start;
+		this.max = end;
 	}
 
 	/**
@@ -97,10 +101,18 @@ public class Interval<D> implements Comparable<Interval<D>> {
 	public int getStart() {
 		return start;
 	}
+        
+    public void setStart(Integer start) {
+        this.start = start;
+    }
 
 	public int getEnd() {
 		return end;
 	}
+        
+    public void setEnd(Integer end) {
+        this.end = end;
+    }
 
 	public Integer getMin() {
 		return min;

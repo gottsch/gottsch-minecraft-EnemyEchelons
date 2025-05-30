@@ -78,8 +78,11 @@ public class DataInterval<D extends INBTSerializable<Tag>> implements Comparable
 	public DataInterval(Integer start, Integer end, Supplier<D> supplier) {
 		this.start = start;
 		this.end = end;
-		this.min = start < end ? start : end;
-		this.max = start > end ? start : end;
+		// Initialize min/max to the interval's own bounds.
+		// These will be updated by updateNodeProperties in DataIntervalTree
+		// or during insertion to reflect subtree min/max.
+		this.min = start;
+		this.max = end;
 		this.dataSupplier = supplier;
 	}
 
@@ -201,9 +204,17 @@ public class DataInterval<D extends INBTSerializable<Tag>> implements Comparable
 		return start;
 	}
 
+    public void setStart(Integer start) {
+        this.start = start;
+    }
+
 	public int getEnd() {
 		return end;
 	}
+
+    public void setEnd(Integer end) {
+        this.end = end;
+    }
 
 	public Integer getMin() {
 		return min;
