@@ -8,27 +8,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [2.0.0] - 2025-05-26
 
 ### Added
- - TODO add echelons_naming.toml file(s). this would allow you to give ranks specific names on a per mob basis.
-
-ex (json). `"minecraft:zombie": {
-  "rank": 0,
-  "name": "Novice"
-}`
-- TODO display name in the GUI HUD
+- echelons_difficulty_naming_config.toml file(s).
+- display name in the GUI HUD
+- shudHud config to Client. note - this cannot override server showHud = false setting.
+- showLevel0Hud config to Client. this setting prevent showing the hud if the mob level = 0 (which is vanilla level).
+- implemented Fly Speed modification.
 
 ### Changed
-- TODO rename terms in the echelon config.  ie rename [[echelons]] to [[configs]].  rename [[level]] to [[difficulty]] or [[rank]], rename [[stratum]] to [[layer]].
-- TODO rename **eechelons-echelons.toml** to **echelons_config.toml**.
-- TODO create a sub-folder **enemy_echelons**
-- TODO enable toml parser to read doubles even when a decimal number is not given. ie convert integer to double
-- TODO create a default echelons_config.toml for vanilla only mobs. also create an empty custom_echelons_config.toml
-- TODO mod should read and register ALL .toml files in the **enemey_echelons** subfolder
-- TODO config file should have an option to override previous values.
-- TODO add API to allow other mods to register a config file(s).
-- TODO change GUI HUD to grow in width dependent on text length
-- TODO GUI HUD background shouldn't have side borders
-  - use a gradiant to transparent background.
-  - have different background sizes dependent on the text length
+- renamed terms in the echelon config.  ie rename [[echelons]] to [[configs]].  rename [[level]] to [[difficulty]] or [[rank]], rename [[stratum]] to [[echelon]].
+- renamed **eechelons-echelons.toml** to **echelons_config.toml**.
+- create a config sub-folder **enemy_echelons**
+- create a default echelons_config.toml for vanilla only mobs. also create an empty echelons_custom_config.toml
+- mod should read and register ALL .toml files in the **enemey_echelons** subfolder
+- add API to allow other mods to register a config file(s).
+- GUI HUD grows in width dependent on text length
+- tweaked the GUI HUD texture.
+- modified all attribute modifiers using permanent attribute modifiers
+- moved calculation of XP reward to event instead of using reflection in the EchelonManager.
+- remove unnecessary rendering code.
+- refactored package names
+- TODO removed option to change GUI HUD texture.
 
 ## [1.4.0]  - 2025-02-13
 
