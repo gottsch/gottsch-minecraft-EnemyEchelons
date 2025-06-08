@@ -217,15 +217,18 @@ public class EchelonRegistry {
 
         // for each config in a given dimension
         for (EchelonConfigsHolder.Config e : CONFIGS.get(dimension)) {
-             // find the first valid echelon - ie in the mod whitelist and not in the blacklists
-            if (!e.getModWhitelist().isEmpty() && e.getModWhitelist().contains(mob.getNamespace())) {
-                if (e.getMobBlacklist().contains(mob.toString())) {
+            // find the first valid echelon - ie in the mod whitelist and not in the blacklists
+            if (!e.getModWhitelist().isEmpty()) {
+                if (e.getModWhitelist().contains(mob.getNamespace())) {
+                    if (e.getMobBlacklist().contains(mob.toString())) {
+                        return Optional.empty();
+                    }
+                }
+                // if whitelist is not empty, and the mob's namespace is not included
+                else {
                     return Optional.empty();
                 }
             }
-//            if (!e.getModWhitelist().isEmpty() && !e.getModWhitelist().contains(mob.getNamespace())) {
-//                return Optional.empty();
-//            }
 
             if (e.getModWhitelist().isEmpty()
                     && e.getModBlacklist().contains(mob.getNamespace())) {
