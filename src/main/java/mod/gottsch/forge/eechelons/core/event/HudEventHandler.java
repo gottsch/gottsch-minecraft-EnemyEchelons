@@ -1,0 +1,82 @@
+/*
+ * This file is part of  Enemy Echelons.
+ * Copyright (c) 2022, Mark Gottschling (gottsch)
+ *
+ * Enemy Echelons is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Enemy Echelons is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Enemy Echelons.  If not, see <http://www.gnu.org/licenses/lgpl>.
+ */
+package mod.gottsch.forge.eechelons.core.event;
+
+import mod.gottsch.forge.eechelons.EEchelons;
+import mod.gottsch.forge.eechelons.core.client.HudUtil;
+import mod.gottsch.forge.eechelons.core.client.MouseUtil;
+import mod.gottsch.forge.eechelons.core.config.Config;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.phys.EntityHitResult;
+import net.minecraft.world.phys.HitResult;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.RenderGuiOverlayEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
+
+import java.util.Optional;
+
+/**
+ * This class was derived from Champions by TheIllusiveC4
+ * @see <a href="https://github.com/TheIllusiveC4/Champions">Champions</a>
+ *
+ */
+public class HudEventHandler {
+
+//	public static boolean isRendering = false;
+
+	// NOTE these are only used to check where the offset is set to, so other integrations can move if they overlap
+	// these are NOT used in the actual echelons rendering of background and level text 
+	public static int startX = 0;
+	public static int startY = 0;
+
+	/**
+	 * Forge Bus Event Subscriber class
+	 */
+	@Mod.EventBusSubscriber(modid = EEchelons.MOD_ID, bus = EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
+	public static class ForgeBusSubscriber {
+
+		@SubscribeEvent
+		public static void renderHealthHud(final RenderGuiOverlayEvent.Pre evt) {
+			if (Config.SERVER.showHud.get() && Config.CLIENT.showHud.get()) {
+				Minecraft mc = Minecraft.getInstance();
+
+				Optional<LivingEntity> livingEntity;
+				if (Config.SERVER.hudRangeEnabled.get()) {
+					livingEntity = MouseUtil.getMouseOverEchelonMob(mc, evt.getPartialTick());
+				} else {
+					HitResult hitResult = mc.hitResult;
+					if (hitResult.getType() == HitResult.Type.ENTITY
+							&& ((EntityHitResult)hitResult).getEntity() instanceof LivingEntity) {
+						livingEntity = Optional.of((LivingEntity)((EntityHitResult)hitResult).getEntity());
+					} else {
+						livingEntity = Optional.empty();
+					}
+				}
+
+				livingEntity.ifPresent(entity -> {
+					GuiGraphics matrixStack = evt.getGuiGraphics();
+					HudUtil.renderLevelBar(matrixStack, entity);
+				});
+			}
+		}
+	}
+}
