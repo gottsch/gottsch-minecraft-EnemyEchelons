@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.1] - 2025-06-07
+
+## Changed
+- fixed echelon config so that if a mod(s) is whitelisted, then all non-listed mods are correctly excluded. ie correct implementation of a whitelist.
+  - this mean that if you have included mods with custom mobs, they will not be modified by default and you need to add them to an echelons config file.
+
 ## [2.0.0] - 2025-05-26
 
 ### Added
