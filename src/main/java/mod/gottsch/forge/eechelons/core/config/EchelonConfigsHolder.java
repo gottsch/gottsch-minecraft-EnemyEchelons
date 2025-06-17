@@ -1,26 +1,27 @@
 /*
- * This file is part of  Enemy Echelons.
- * Copyright (c) 2022, Mark Gottschling (gottsch)
- * 
+ * This file is part of  Enemy Echelons API.
+ * Copyright (c) 2022 Mark Gottschling (gottsch)
+ *
  * All rights reserved.
  *
- * Enemy Echelons is free software: you can redistribute it and/or modify
+ * Enemy Echelons API is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Enemy Echelons is distributed in the hope that it will be useful,
+ * Enemy Echelons API is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with Enemy Echelons.  If not, see <http://www.gnu.org/licenses/lgpl>.
+ * along with Enemy Echelons API.  If not, see <http://www.gnu.org/licenses/lgpl>.
  */
 package mod.gottsch.forge.eechelons.core.config;
 
-import mod.gottsch.forge.eechelons.core.bst.Interval;
-import mod.gottsch.forge.eechelons.core.bst.IntervalTree;
+import mod.gottsch.forge.gottschcore.bst.IInterval;
+import mod.gottsch.forge.gottschcore.bst.IIntervalTree;
+import mod.gottsch.forge.gottschcore.bst.Interval;
 import mod.gottsch.forge.gottschcore.random.WeightedCollection;
 import org.apache.commons.lang3.ObjectUtils;
 
@@ -97,7 +98,7 @@ public class EchelonConfigsHolder {
 		private List<Echelon> echelons;
 
 		// internal: not set by config, but set by the manager
-		private IntervalTree<WeightedCollection<Double, Integer>> histogram;
+		private IIntervalTree<WeightedCollection<Double, Integer>> histogram;
 
 		/**
 		 *
@@ -107,8 +108,8 @@ public class EchelonConfigsHolder {
 		public Integer getDifficulty(Integer y) {
 			Integer result = 0;
 
-			List<Interval<WeightedCollection<Double, Integer>>> difficulties = histogram
-					.getOverlapping(histogram.getRoot(), new Interval<>(y, y), false);
+			List<IInterval<WeightedCollection<Double, Integer>>> difficulties = histogram
+					.getOverlapping(histogram.getRoot(), new Interval<>(y, y), true, true);
 
 			if (ObjectUtils.isEmpty(difficulties)) {
 				return 0;
@@ -387,11 +388,11 @@ public class EchelonConfigsHolder {
 			this.mobWhitelist = mobWhitelist;
 		}		
 
-		public IntervalTree<WeightedCollection<Double, Integer>> getHistogram() {
+		public IIntervalTree<WeightedCollection<Double, Integer>> getHistogram() {
 			return this.histogram;
 		}
 
-		public void setHistogram(IntervalTree<WeightedCollection<Double, Integer>> histogram) {
+		public void setHistogram(IIntervalTree<WeightedCollection<Double, Integer>> histogram) {
 			this.histogram = histogram;
 		}
 

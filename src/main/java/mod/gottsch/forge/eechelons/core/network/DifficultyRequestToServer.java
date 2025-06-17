@@ -1,28 +1,28 @@
 /*
- * This file is part of  Enemy Echelons.
- * Copyright (c) 2022, Mark Gottschling (gottsch)
- * 
+ * This file is part of  Enemy Echelons API.
+ * Copyright (c) 2022 Mark Gottschling (gottsch)
+ *
  * All rights reserved.
  *
- * Enemy Echelons is free software: you can redistribute it and/or modify
+ * Enemy Echelons API is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Enemy Echelons is distributed in the hope that it will be useful,
+ * Enemy Echelons API is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with Enemy Echelons.  If not, see <http://www.gnu.org/licenses/lgpl>.
+ * along with Enemy Echelons API.  If not, see <http://www.gnu.org/licenses/lgpl>.
  */
 package mod.gottsch.forge.eechelons.core.network;
 
 import java.util.function.Supplier;
 
-import mod.gottsch.forge.eechelons.EEchelons;
-import mod.gottsch.forge.eechelons.core.capability.EEchelonsCapabilities;
+import mod.gottsch.forge.eechelons.EEchelonsApiMod;
+import mod.gottsch.forge.eechelons.core.capability.ModCapabilities;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
@@ -66,7 +66,7 @@ public class DifficultyRequestToServer {
 		LogicalSide sideReceived = ctx.getDirection().getReceptionSide();
 
 		if (sideReceived != LogicalSide.SERVER) {
-			EEchelons.LOGGER.warn("DifficultyRequestToServer received on wrong side -> {}", ctx.getDirection().getReceptionSide());
+			EEchelonsApiMod.LOGGER.warn("DifficultyRequestToServer received on wrong side -> {}", ctx.getDirection().getReceptionSide());
 			return;
 		}
 
@@ -86,11 +86,11 @@ public class DifficultyRequestToServer {
 			Entity entity = world.getEntity(msg.entityId);
 			if (entity != null) {
 //				EEchelons.LOGGER.debug("handling server message to entity -> {} : {}", entity.getName().getString(), entity.getId());
-				entity.getCapability(EEchelonsCapabilities.DIFFICULTY_CAPABILITY).ifPresent(cap -> {
+				entity.getCapability(ModCapabilities.DIFFICULTY_CAPABILITY).ifPresent(cap -> {
 //					EEchelons.LOGGER.debug("entity {} has cap", entity.getId());
 					// send the level back to the client
 					DifficultyMessageToClient message = new DifficultyMessageToClient(entity.getId(), cap.getDifficulty(), cap.getName());
-					EEchelonsNetwork.CHANNEL.send(PacketDistributor.TRACKING_ENTITY.with(() -> entity), message);
+					ModNetwork.CHANNEL.send(PacketDistributor.TRACKING_ENTITY.with(() -> entity), message);
 				});
 			}
 		}

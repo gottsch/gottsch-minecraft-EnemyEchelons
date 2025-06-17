@@ -1,7 +1,26 @@
+/*
+ * This file is part of  Enemy Echelons API.
+ * Copyright (c) 2025 Mark Gottschling (gottsch)
+ *
+ * All rights reserved.
+ *
+ * Enemy Echelons API is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Enemy Echelons API is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Enemy Echelons API.  If not, see <http://www.gnu.org/licenses/lgpl>.
+ */
 package mod.gottsch.forge.eechelons.core.registry;
 
 import com.google.common.collect.Maps;
-import mod.gottsch.forge.eechelons.EEchelons;
+import mod.gottsch.forge.eechelons.EEchelonsApiMod;
 import mod.gottsch.forge.eechelons.core.config.NameConfigsHolder;
 import net.minecraft.resources.ResourceLocation;
 
@@ -32,7 +51,7 @@ public class DifficultyNameRegistryEntry {
 
     public DifficultyNameRegistryEntry(NameConfigsHolder.NameConfig config) {
         if (config.getId() == null) {
-            EEchelons.LOGGER.warn("Skipping a Difficulty Naming Config is missing or has an invalid id -> {}", config.getId());
+            EEchelonsApiMod.LOGGER.warn("Skipping a Difficulty Naming Config is missing or has an invalid id -> {}", config.getId());
             return;
         }
 

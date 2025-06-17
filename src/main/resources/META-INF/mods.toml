@@ -34,7 +34,7 @@ A mod that assigns levels and attribute modifications to mobs based on the world
 '''
 
 # A dependency - use the . to indicate dependency for a specific modid. Dependencies are optional.
-[[dependencies.eechelons]] #optional
+[[dependencies.eechelonsapi]] #optional
     # the modid of the dependency
     modId="forge" #mandatory
     # Does this dependency have to exist - if not, ordering below must be specified
@@ -46,14 +46,14 @@ A mod that assigns levels and attribute modifications to mobs based on the world
     # Side this dependency is applied on - BOTH, CLIENT or SERVER
     side="BOTH"
 # Here's another dependency
-[[dependencies.eechelons]]
+[[dependencies.eechelonsapi]]
     modId="minecraft"
     mandatory=true
 # This version range declares a minimum of the current minecraft version up to but not including the next major version
     versionRange="[1.20.1,1.21)"
     ordering="NONE"
     side="BOTH"
-[[dependencies.eechelons]]
+[[dependencies.eechelonsapi]]
     modId="gottschcore"
     mandatory=true
 # This version range declares a minimum of the current minecraft version up to but not including the next major version
