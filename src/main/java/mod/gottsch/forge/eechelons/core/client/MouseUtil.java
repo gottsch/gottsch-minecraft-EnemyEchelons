@@ -19,8 +19,8 @@ package mod.gottsch.forge.eechelons.core.client;
 
 import java.util.Optional;
 
-import mod.gottsch.forge.eechelons.core.capability.EEchelonsCapabilities;
 import mod.gottsch.forge.eechelons.core.config.Config;
+import mod.gottsch.forge.eechelonsapi.core.capability.ModCapabilities;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -52,7 +52,7 @@ public class MouseUtil {
 
 				if (entityRayTraceResult != null) {
 					Entity hoverEntity = entityRayTraceResult.getEntity();
-					if (hoverEntity.getCapability(EEchelonsCapabilities.DIFFICULTY_CAPABILITY).isPresent()) {
+					if (hoverEntity.getCapability(ModCapabilities.DIFFICULTY_CAPABILITY).isPresent()) {
 						return Optional.of((LivingEntity)hoverEntity);
 					}
 				}

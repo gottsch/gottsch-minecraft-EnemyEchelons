@@ -17,23 +17,20 @@
  */
 package mod.gottsch.forge.eechelons.core.client;
 
-import java.awt.Color;
-
-import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
-
 import mod.gottsch.forge.eechelons.EEchelons;
-import mod.gottsch.forge.eechelons.core.capability.EEchelonsCapabilities;
-import mod.gottsch.forge.eechelons.core.capability.IDifficultyHandler;
 import mod.gottsch.forge.eechelons.core.config.Config;
 import mod.gottsch.forge.eechelons.core.event.HudEventHandler;
 import mod.gottsch.forge.eechelons.core.integration.ChampionsIntegration;
 import mod.gottsch.forge.eechelons.core.integration.WailaIntegration;
+import mod.gottsch.forge.eechelonsapi.core.capability.IDifficultyHandler;
+import mod.gottsch.forge.eechelonsapi.core.capability.ModCapabilities;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
+
+import java.awt.*;
 
 /**
  * This class was derived from Champions by TheIllusiveC4
@@ -59,8 +56,8 @@ public class HudUtil {
 	 */
 	public static boolean renderLevelBar(GuiGraphics matrixStack, final LivingEntity livingEntity) {
 
-		int difficulty = livingEntity.getCapability(EEchelonsCapabilities.DIFFICULTY_CAPABILITY).map(IDifficultyHandler::getDifficulty).orElse(0);
-		String name = livingEntity.getCapability(EEchelonsCapabilities.DIFFICULTY_CAPABILITY).map(IDifficultyHandler::getName).orElse("");
+		int difficulty = livingEntity.getCapability(ModCapabilities.DIFFICULTY_CAPABILITY).map(IDifficultyHandler::getDifficulty).orElse(0);
+		String name = livingEntity.getCapability(ModCapabilities.DIFFICULTY_CAPABILITY).map(IDifficultyHandler::getName).orElse("");
 
 		// do not display is client doesn't want to show Level 0 hud.
 		if (difficulty == 0 && !Config.CLIENT.showLevel0Hud.get()) {

@@ -18,11 +18,11 @@
 package mod.gottsch.forge.eechelons.core.event;
 
 import mod.gottsch.forge.eechelons.EEchelons;
-import mod.gottsch.forge.eechelons.core.capability.EEchelonsCapabilities;
-import mod.gottsch.forge.eechelons.core.config.EchelonConfigsHolder;
-import mod.gottsch.forge.eechelons.core.echelon.EchelonManager;
-import mod.gottsch.forge.eechelons.core.network.EEchelonsNetwork;
-import mod.gottsch.forge.eechelons.core.network.DifficultyRequestToServer;
+import mod.gottsch.forge.eechelonsapi.core.capability.ModCapabilities;
+import mod.gottsch.forge.eechelonsapi.core.config.EchelonConfigsHolder;
+import mod.gottsch.forge.eechelonsapi.core.echelon.EchelonManager;
+import mod.gottsch.forge.eechelonsapi.core.network.DifficultyRequestToServer;
+import mod.gottsch.forge.eechelonsapi.core.network.ModNetwork;
 import mod.gottsch.forge.gottschcore.world.WorldInfo;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
@@ -63,10 +63,10 @@ public class WorldEventHandler {
 				 */
 				if (WorldInfo.isClientSide(event.getEntity().level())) {
 					// get cap, ensure that level hasn't already been set.
-					if (entity.getCapability(EEchelonsCapabilities.DIFFICULTY_CAPABILITY).map(cap -> cap.getDifficulty() == -1).orElse(false)) {
+					if (entity.getCapability(ModCapabilities.DIFFICULTY_CAPABILITY).map(cap -> cap.getDifficulty() == -1).orElse(false)) {
 						DifficultyRequestToServer message = new DifficultyRequestToServer(entity.getId(), entity.level().dimension().location().toString(),
 								entity.level().dimension().location().toString());
-						EEchelonsNetwork.CHANNEL.sendToServer(message);
+						ModNetwork.CHANNEL.sendToServer(message);
 					}
 				}
 				else {
@@ -96,7 +96,7 @@ public class WorldEventHandler {
 
 			if (echelon.hasXpFactor()) {
 				// Get the echelon level from the capability
-				mob.getCapability(EEchelonsCapabilities.DIFFICULTY_CAPABILITY).ifPresent(cap -> {
+				mob.getCapability(ModCapabilities.DIFFICULTY_CAPABILITY).ifPresent(cap -> {
 					int echelonLevel = cap.getDifficulty();
 					if (echelonLevel < 0) {
 						// Level not yet calculated, or calculation failed.

@@ -23,14 +23,15 @@ import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.conversion.ObjectConverter;
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import mod.gottsch.forge.eechelons.core.config.Config;
-import mod.gottsch.forge.eechelons.core.config.EchelonConfigsHolder;
-import mod.gottsch.forge.eechelons.core.config.NameConfigsHolder;
-import mod.gottsch.forge.eechelons.core.echelon.EchelonManager;
-import mod.gottsch.forge.eechelons.core.registry.DifficultyNameRegistry;
-import mod.gottsch.forge.eechelons.core.registry.DifficultyNameRegistryEntry;
+
 import mod.gottsch.forge.eechelons.core.setup.ClientSetup;
 import mod.gottsch.forge.eechelons.core.setup.CommonSetup;
 import mod.gottsch.forge.eechelons.core.setup.Registration;
+import mod.gottsch.forge.eechelonsapi.core.config.EchelonConfigsHolder;
+import mod.gottsch.forge.eechelonsapi.core.config.NameConfigsHolder;
+import mod.gottsch.forge.eechelonsapi.core.echelon.EchelonManager;
+import mod.gottsch.forge.eechelonsapi.core.registry.DifficultyNameRegistry;
+import mod.gottsch.forge.eechelonsapi.core.registry.DifficultyNameRegistryEntry;
 import mod.gottsch.forge.gottschcore.GottschCore;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.ForgeConfigSpec;
@@ -61,7 +62,6 @@ import java.util.Objects;
  * loading code was derived from Champions.
  * @see <a href="https://github.com/TheIllusiveC4/Champions">Champions</a>
  *
- * TODO rename to Enemy Echelons
  * @author Mark Gottschling on Jul 24, 2022
  *
  */
@@ -146,7 +146,7 @@ public class EEchelons {
 	 * On a config event.
 	 * @param event
 	 */
-	private void onLoadConfig(final ModConfigEvent event) {
+	private void onLoadConfig(final ModConfigEvent event, List<EchelonConfigsHolder.Config> configs) {
 		if (event.getConfig().getModId().equals(MOD_ID)) {
 			if (event.getConfig().getType() == Type.COMMON) {
 				IConfigSpec<?> spec = event.getConfig().getSpec();

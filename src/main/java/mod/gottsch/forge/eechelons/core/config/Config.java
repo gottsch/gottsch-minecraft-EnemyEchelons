@@ -20,6 +20,8 @@ package mod.gottsch.forge.eechelons.core.config;
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.conversion.ObjectConverter;
 import mod.gottsch.forge.eechelons.EEchelons;
+import mod.gottsch.forge.eechelonsapi.core.config.EchelonConfigsHolder;
+import mod.gottsch.forge.eechelonsapi.core.config.NameConfigsHolder;
 import mod.gottsch.forge.gottschcore.config.AbstractConfig;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.common.ForgeConfigSpec.BooleanValue;
@@ -35,6 +37,7 @@ import java.util.List;
  * @author Mark Gottschling on Jul 25, 2022
  *
  */
+// TODO need to extends the API config
 @EventBusSubscriber(modid = EEchelons.MOD_ID, bus = EventBusSubscriber.Bus.MOD)
 public final class Config extends AbstractConfig {
 	public static final String CATEGORY_DIV = "##############################";
