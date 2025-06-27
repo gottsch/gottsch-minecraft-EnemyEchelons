@@ -1,0 +1,245 @@
+### EXAMPLE DIFFICULTY CONFIG FILE ###
+
+# the order in which config files are loaded. smaller number = higher precendence, ie 0 goes first.
+loadOrder = 0
+
+# note: order or configs matters, particularly when using blacklists.
+[[configs]]
+	# the unique id of the echelon config
+	id = "eechelons:default"
+
+	# list of dimension namedspaced IDs that this echelon config applies to. ie. dimension whitelist
+	dimensions=["minecraft:overworld"]
+
+	# ## there are two types of modification - increment and factor. ##
+	# ## -increment is a fixed number that is added to the base attribute per difficulty level. ##
+	# ##	-factor is a percent of the base attribute that is added to the base attribute per difficulty level. ##
+	# ## all increment, factor and max values must include a decimal. ##
+
+	# increase hp by 20% of base per difficulty level
+	hpFactor=0.2
+
+	# increase damage by 20% of base, per difficulty level
+	damageFactor=0.2
+	# the total damage that can be attained/modified to
+	maxDamage=10.0
+
+	# increase armor by 10% of base, per difficulty level
+	armorFactor=0.1
+	# increase armor toughness by 10% of base, per difficulty level
+	armorToughnessFactor=1.0
+
+	# increase knockback by 0.2 per difficulty level
+	# note: the knockback attribute has a range of 0.0 - 5.0
+	knockbackIncrement=0.2
+
+	# increase knockback by 0.0 (ie no increase) per difficulty level
+	# note: the knockback resistence attribute has a range of 0.0 - 1.0 (0.0 = none or 0%, 1.0 = 100%)
+	knockbackResistIncrement=0.0
+
+	speedFactor=0.05
+	# the fastest speed that can be attained/modified to.
+	# note: generic vanilla movment speed = 0.7; Zombie speed = 0.23
+	maxSpeed=0.35
+
+	flyingSpeedFactor=0.01
+	# the fastest flying speed that can be attained/modified to.
+	# note: generic vanilla flying speed = 0.4; Wither flying speed = 0.6;
+	maxFlyingSpeed=0.15
+
+	# increase xp reward by 20% of base per difficulty level
+	# note: xp reward is rounded to a whole number, therefor not all difficulty level increments do not necessarily result in extra xp reward
+	# formula = round(baseXp * (1 + (difficulty level * factor)))
+	# example: zombie (default)=5 xp, difficulty level=1 --> 5 * (1 + (1 * 0.2)) = 6 xp;
+	# example: zombie=5xp, difficulty level=3 --> 5 * (1 + (3 * 0.2)) = 8 xp;
+	# example: zombie=5xp, difficulty level=3, factor = 0.1 --> 5 * (1 + (3 * 0.1)) = 6.5 xp = 7 xp (rounded);
+	# example: someWeakMob=1xp, difficulty level=1 --> 1 * (1 + (1 * 0.2)) = 1.2 xp = 1 xp (rounded);
+	xpFactor=0.2
+
+	# MOD lists behave similar to MOB lists but are applied to all mobs of an entire mod.
+	# mod lists are applied first
+	# modWhitelist supercedes the modBlacklist.
+	# mod lists should only contain the mod ids.
+	# ex. ["minecraft"] is mod whitelisted and therefor, only minecraft mobs will have
+	# this config apply to them. you can restrict individual mobs using the MOB blacklist
+	# in conjunction with the mod whitelist.
+	# ex. even though "minecraft" has been whitelisted, you could exlude creepers
+	# by adding it to the mob blacklist.
+	modWhitelist = ["minecraft"]
+	modBlacklist = []
+	# list of mobs that are explicitly allowed. this supercedes the mobBlacklist.
+	# both modWhitelist and mobWhitelist can be used in the same config.
+	mobWhitelist = []
+	# list of mobs that should not receive modification
+	# can use wildcards, ex. "minecraft:*", which behaves the same as adding to the mod list.
+	# creepers are blacklisted from this default config (but is defined in another config).
+	# wither, ravager and some other high tier mobs are also excluded.
+	# all passive mobs are blacklisted as well, as they shouldn't have modifications.
+	mobBlacklist = ["minecraft:creeper", "minecraft:elder_guardian", "minecraft:ravager", "minecraft:wither", "minecraft:warden",
+		"minecraft:armadillo", "minecraft:axolotl", "minecraft:bat", "minecraft:bee", "minecraft:camel",
+		"minecraft:cat", "minecraft:chicken", "minecraft:cod", "minecraft:cow", "minecraft:dolphin",
+		"minecraft:donkey", "minecraft:fox", "minecraft:frog","minecraft:glow_squid","minecraft:goat", "minecraft:horse",
+		"minecraft:llama", "minecraft:mooshroom", "minecraft:mule", "minecraft:ocelot",
+		"minecraft:panda", "minecraft:parrot", "minecraft:pig", "minecraft:pufferfish", "minecraft:penguin",
+		"minecraft:rabbit", "minecraft:salmon", "minecraft:sheep", "minecraft:sniffer",
+		"minecraft:strider", "minecraft:squid", "minecraft:tadpole", "minecraft:tropical_fish", "minecraft:turtle"]
+
+	# should this replace existing registered echelons. as this is the base echelon config, this value is true.
+	replace = true
+
+	[[configs.echelons]]
+		# optional - the id of the echelon
+		id="eechelons:echelon1"
+		# the min y-value in the strata
+		min=60
+		# the max y-value in the strata
+		max=319
+		# the histogram is a list of difficulty level+weight pairs. the higher the weight, the more likely the corresponding difficulty level will be selected.
+		# note: difficulty levels are integers -> no decimals. weights are doubles -> requires decimals.
+		[[configs.echelons.histogram]]
+			# difficulty 0 = vanilla - ie. no modifications
+			difficulty=0
+			weight=200.0
+		[[configs.echelons.histogram]]
+			difficulty=1
+			weight=100.0
+		[[configs.echelons.histogram]]
+			difficulty=2
+			weight=25.0
+		[[configs.echelons.histogram]]
+			difficulty=3
+			weight=5.0
+	[[configs.echelons]]
+		id="eechelons:echelon2"
+		min=30
+		max=59
+		[[configs.echelons.histogram]]
+			difficulty=0
+			weight=200.0
+		[[configs.echelons.histogram]]
+			difficulty=1
+			weight=150.0
+		[[configs.echelons.histogram]]
+			difficulty=2
+			weight=100.0
+	[[configs.echelons]]
+		id="eechelons:echelon3"
+		min=0
+		max=29
+		[[configs.echelons.histogram]]
+			difficulty=0
+			weight=100.0
+		[[configs.echelons.histogram]]
+			difficulty=1
+			weight=120.0
+		[[configs.echelons.histogram]]
+			difficulty=2
+			weight=200.0
+		[[configs.echelons.histogram]]
+			difficulty=3
+			weight=200.0
+	[[configs.echelons]]
+		id="eechelons:echelon4"
+		min=-30
+		max=-1
+		[[configs.echelons.histogram]]
+			difficulty=1
+			weight=80.0
+		[[configs.echelons.histogram]]
+			difficulty=2
+			weight=120.0
+		[[configs.echelons.histogram]]
+			difficulty=3
+			weight=200.0
+		[[configs.echelons.histogram]]
+			difficulty=4
+			weight=120.0
+	[[configs.echelons]]
+		id="eechelons:echelon5"
+		min=-64
+		max=-31
+		[[configs.echelons.histogram]]
+			difficulty=2
+			weight=80.0
+		[[configs.echelons.histogram]]
+			difficulty=3
+			weight=120.0
+		[[configs.echelons.histogram]]
+			difficulty=4
+			weight=200.0
+		[[configs.echelons.histogram]]
+			difficulty=5
+			weight=120.0
+
+# this echelon config definition contains a whitelisted creeper, therefore this definition will only apply to creepers in the overworld.
+[[configs]]
+	id="eechelons:creeper"
+	dimensions=["minecraft:overworld"]
+	mobWhitelist=["minecraft:creeper"]
+	hpFactor=0.25
+	knockbackResistIncrement=0.25
+	[[configs.echelons]]
+	min=60
+	max=319
+		[[configs.echelons.histogram]]
+			difficulty=0
+			weight=200.0
+		[[configs.echelons.histogram]]
+			difficulty=1
+			weight=100.0
+		[[configs.echelons.histogram]]
+			difficulty=2
+			weight=25.0
+		[[configs.echelons.histogram]]
+			difficulty=3
+			weight=5.0
+	[[configs.echelons]]
+		min=30
+		max=64
+		[[configs.echelons.histogram]]
+			difficulty=0
+			weight=100.0
+		[[configs.echelons.histogram]]
+			difficulty=1
+			weight=200.0
+	[[configs.echelons]]
+		min=0
+		max=29
+		[[configs.echelons.histogram]]
+			difficulty=0
+			weight=50.0
+		[[configs.echelons.histogram]]
+			difficulty=1
+			weight=100.0
+		[[configs.echelons.histogram]]
+			difficulty=2
+			weight=100.0
+	[[configs.echelons]]
+		min=-64
+		max=-1
+		[[configs.echelons.histogram]]
+			difficulty=0
+			weight=10.0
+		[[configs.echelons.histogram]]
+			difficulty=1
+			weight=100.0
+		[[configs.echelons.histogram]]
+			difficulty=2
+			weight=200.0
+		[[configs.echelons.histogram]]
+			difficulty=3
+			weight=25.0
+
+# this is a catch-all echelon config. this config will be used if a dimension isn't specified in another config
+# use "." or ".:." or "*" or "*:*" for the dimension
+# by default, this echelon is setup to not provide any modifications, ie mobs remain at vanilla/default levels.
+[[configs]]
+	id="eechelons:catch_all"
+	dimensions=["."]
+	hpFactor=0.0
+	[[configs.echelons]]
+		min=-64
+		max=319
+		[[configs.echelons.histogram]]
+			difficulty=0
+			weight=1.0

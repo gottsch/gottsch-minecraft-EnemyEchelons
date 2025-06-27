@@ -17,12 +17,12 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with Enemy Echelons API.  If not, see <http://www.gnu.org/licenses/lgpl>.
  */
-package mod.gottsch.forge.eechelons.core.registry;
+package mod.gottsch.forge.eechelonsapi.core.registry;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
-import mod.gottsch.forge.eechelons.core.config.EchelonConfigsHolder;
+import mod.gottsch.forge.eechelonsapi.core.config.EchelonConfigsHolder;
 import mod.gottsch.forge.gottschcore.bst.Interval;
 import mod.gottsch.forge.gottschcore.bst.IntervalTree;
 import mod.gottsch.forge.gottschcore.random.WeightedCollection;
@@ -74,99 +74,96 @@ public class EchelonRegistry {
         CONFIGS_BY_MOB.clear();
     }
 
-    public void register(EchelonConfigsHolder.Config config) {
-        // TODO move from register(list);
+    public void register(EchelonConfigsHolder.Config echelonConfig) {
+        if (ObjectUtils.isEmpty(echelonConfig.getEchelons())) {
+            return;
+        }
+
+        // TODO need to check if an entry exists already and if the replace property is set.
+        // add to map
+        if (StringUtils.isNotBlank(echelonConfig.getId())) {
+            CONFIGS_BY_ID.put(echelonConfig.getId(), echelonConfig);
+        }
+
+        // scan the mob white/black list to see if there are any wildcards and move to mod lists.
+        Predicate<String> isWildcard = mob -> mob.contains(":*");
+        echelonConfig.getMobWhitelist().stream().filter(isWildcard)
+                .forEach(mob -> {
+                    echelonConfig.getModWhitelist().add(mob.substring(0, mob.indexOf(":")));
+                });
+        echelonConfig.getMobBlacklist().stream().filter(isWildcard)
+                .forEach(mob -> {
+                    echelonConfig.getModBlacklist().add(mob.substring(0, mob.indexOf(":")));
+                });
+        echelonConfig.getMobWhitelist().removeIf(isWildcard);
+        echelonConfig.getMobBlacklist().removeIf(isWildcard);
+
+        /*
+         *  build BST
+         */
+        // create a new tree
+        IntervalTree<WeightedCollection<Double, Integer>> tree = new IntervalTree<>();
+        // process each strata in the stratum
+        echelonConfig.getEchelons().forEach(echelon -> {
+            // build weighted collection from histogram
+            WeightedCollection<Double, Integer> collection = new WeightedCollection<>();
+            echelon.getHistogram().forEach(entry -> {
+                collection.add(entry.getWeight(), entry.getDifficulty());
+            });
+            // update echelon with the collection
+            echelon.setWeightedDifficulties(collection);
+            // create new interval
+            Interval<WeightedCollection<Double, Integer>> interval = new Interval<>(echelon.getMin(), echelon.getMax(), collection);
+            // add interval to tree
+            tree.insert(interval);
+        });
+
+        // add histogram to echelon
+        echelonConfig.setHistogram(tree);
+
+        if (ObjectUtils.isEmpty(echelonConfig.getDimensions())) {
+            echelonConfig.getDimensions().add(".");
+        }
+
+        // build
+        echelonConfig.getDimensions().forEach(dimension -> {
+            ResourceLocation dimensionKey;
+            if (dimension.equals(".") || dimension.equals("*") || dimension.equals("*:*")) {
+                dimensionKey = ALL_DIMENSION;
+            } else {
+                dimensionKey = new ResourceLocation(dimension);
+            }
+
+            if (!echelonConfig.getModWhitelist().isEmpty()) {
+                echelonConfig.getModWhitelist().forEach(mod -> {
+                    // create a key pair
+                    Pair<ResourceLocation, String> keyPair = new ImmutablePair<>(dimensionKey, mod);
+                    if (!CONFIGS_BY_MOD.containsKey(keyPair)) {
+                        CONFIGS_BY_MOD.put(keyPair, echelonConfig);
+                    }
+                });
+            }
+
+            if (!echelonConfig.getMobWhitelist().isEmpty()) {
+                echelonConfig.getMobWhitelist().forEach(mob -> {
+                    // create a key pair
+                    Pair<ResourceLocation, ResourceLocation> keyPair = new ImmutablePair<>(dimensionKey, new ResourceLocation(mob));
+                    if (!CONFIGS_BY_MOB.containsKey(keyPair)) {
+                        CONFIGS_BY_MOB.put(keyPair, echelonConfig);
+                    }
+                });
+            }
+
+            // register ALL configs in the CONFIGS registry regardless if categorized and registered elsewhere
+            CONFIGS.put(dimensionKey, echelonConfig);
+        });
     }
 
     public void register(List<EchelonConfigsHolder.Config> configs) {
         if (ObjectUtils.isEmpty(configs)) {
             return;
         }
-        configs.forEach(echelonConfig -> {
-            if (ObjectUtils.isEmpty(echelonConfig.getEchelons())) {
-                return;
-            }
-
-            // TODO need to check if an entry exists already and if the replace property is set.
-            // add to map
-            if (StringUtils.isNotBlank(echelonConfig.getId())) {
-                CONFIGS_BY_ID.put(echelonConfig.getId(), echelonConfig);
-            }
-
-            // scan the mob white/black list to see if there are any wildcards and move to mod lists.
-            Predicate<String> isWildcard = mob -> mob.contains(":*");
-            echelonConfig.getMobWhitelist().stream().filter(isWildcard)
-                    .forEach(mob -> {
-                        echelonConfig.getModWhitelist().add(mob.substring(0, mob.indexOf(":")));
-                    });
-            echelonConfig.getMobBlacklist().stream().filter(isWildcard)
-                    .forEach(mob -> {
-                        echelonConfig.getModBlacklist().add(mob.substring(0, mob.indexOf(":")));
-                    });
-            echelonConfig.getMobWhitelist().removeIf(isWildcard);
-            echelonConfig.getMobBlacklist().removeIf(isWildcard);
-
-            /*
-             *  build BST
-             */
-            // create a new tree
-            IntervalTree<WeightedCollection<Double, Integer>> tree = new IntervalTree<>();
-            // process each strata in the stratum
-            echelonConfig.getEchelons().forEach(echelon -> {
-                // build weighted collection from histogram
-                WeightedCollection<Double, Integer> collection = new WeightedCollection<>();
-                echelon.getHistogram().forEach(entry -> {
-                    collection.add(entry.getWeight(), entry.getDifficulty());
-                });
-                // update echelon with the collection
-                echelon.setWeightedDifficulties(collection);
-                // create new interval
-                Interval<WeightedCollection<Double, Integer>> interval = new Interval<>(echelon.getMin(), echelon.getMax(), collection);
-                // add interval to tree
-                tree.insert(interval);
-            });
-
-            // add histogram to echelon
-            echelonConfig.setHistogram(tree);
-
-            if (ObjectUtils.isEmpty(echelonConfig.getDimensions())) {
-                echelonConfig.getDimensions().add(".");
-            }
-
-            // build
-            echelonConfig.getDimensions().forEach(dimension -> {
-                ResourceLocation dimensionKey;
-                if (dimension.equals(".") || dimension.equals("*") || dimension.equals("*:*")) {
-                    dimensionKey = ALL_DIMENSION;
-                } else {
-                    dimensionKey = new ResourceLocation(dimension);
-                }
-
-                if (!echelonConfig.getModWhitelist().isEmpty()) {
-                    echelonConfig.getModWhitelist().forEach(mod -> {
-                        // create a key pair
-                        Pair<ResourceLocation, String> keyPair = new ImmutablePair<>(dimensionKey, mod);
-                        if (!CONFIGS_BY_MOD.containsKey(keyPair)) {
-                            CONFIGS_BY_MOD.put(keyPair, echelonConfig);
-                        }
-                    });
-                }
-
-                if (!echelonConfig.getMobWhitelist().isEmpty()) {
-                    echelonConfig.getMobWhitelist().forEach(mob -> {
-                        // create a key pair
-                        Pair<ResourceLocation, ResourceLocation> keyPair = new ImmutablePair<>(dimensionKey, new ResourceLocation(mob));
-                        if (!CONFIGS_BY_MOB.containsKey(keyPair)) {
-                            CONFIGS_BY_MOB.put(keyPair, echelonConfig);
-                        }
-                    });
-                }
-
-                // register ALL configs in the CONFIGS registry regardless if categorized and registered elsewhere
-                CONFIGS.put(dimensionKey, echelonConfig);
-
-            });
-        });
+        configs.forEach(this::register);
     }
 
     /**

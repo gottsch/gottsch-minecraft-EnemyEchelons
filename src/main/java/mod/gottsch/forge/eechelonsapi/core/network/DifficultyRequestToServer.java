@@ -17,12 +17,12 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with Enemy Echelons API.  If not, see <http://www.gnu.org/licenses/lgpl>.
  */
-package mod.gottsch.forge.eechelons.core.network;
+package mod.gottsch.forge.eechelonsapi.core.network;
 
 import java.util.function.Supplier;
 
-import mod.gottsch.forge.eechelons.EEchelonsApiMod;
-import mod.gottsch.forge.eechelons.core.capability.ModCapabilities;
+import mod.gottsch.forge.eechelonsapi.EEchelonsApiMod;
+import mod.gottsch.forge.eechelonsapi.core.capability.ModCapabilities;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;

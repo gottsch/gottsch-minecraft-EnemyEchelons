@@ -1,0 +1,40 @@
+### EXAMPLE NAMING CONFIG ###
+
+# a set of naming configs. if names aren't defined for a mob(s),
+# the default text of "Level [x]" will be displayed. Ex. Level 3.
+# name config works differently than the echelons config. a mob must be
+# explicitly defined (at the mod or mob level), else the default naming applies.
+# note - naming config file is COMMON and is placed in the /minecraft/config/enemy_echelons folder.
+# - is also mean that only this one config file is expected by the mod and so all changes must be made within this file.
+# note: order or configs matters, particularly when using wildcards.
+[[nameConfigs]]
+    id = "eechelons:default"
+    # white/blacklists of mods/mobs to apply this naming config to.
+    # use "*" to whitelist all mods.
+    modWhiltelist = []
+    # if using "*" to whilte all mods, you can blacklist specific mods, while allowing all others.
+    modBlacklist = []
+    # by default, only zombies and skeleton are whitelisted.
+    mobWhitelist = ["minecraft:zombie", "minecraft:skeleton"]
+    # you can narrow allowable mobs, but adding individual mobs to the blacklist
+    # ex. "minecraft" is added ot modWhitelist, allowing all vanilla mobs, but you could add "minecraft:creeper" to the blacklist.
+    mobBlacklist = []
+    # difficulty-name pairs. if a difficulty is not defined, then the default "Level" name will be used.
+    [[nameConfigs.difficultyNames]]
+        difficulty=0
+        name="Vanilla"
+    [[nameConfigs.difficultyNames]]
+        difficulty=1
+        name="Brute"
+    [[nameConfigs.difficultyNames]]
+        difficulty=2
+        name="Captain"
+    [[nameConfigs.difficultyNames]]
+        difficulty=3
+        name="Elite"
+    [[nameConfigs.difficultyNames]]
+        difficulty=4
+        name="Champion"
+    [[nameConfigs.difficultyNames]]
+        difficulty=5
+        name="Dreadnought"

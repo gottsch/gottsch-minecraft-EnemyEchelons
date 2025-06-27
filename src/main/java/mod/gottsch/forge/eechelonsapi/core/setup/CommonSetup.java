@@ -17,11 +17,10 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with Enemy Echelons API.  If not, see <http://www.gnu.org/licenses/lgpl>.
  */
-package mod.gottsch.forge.eechelons.core.setup;
+package mod.gottsch.forge.eechelonsapi.core.setup;
 
-import mod.gottsch.forge.eechelons.EEchelonsApiMod;
-import mod.gottsch.forge.eechelons.core.config.Config;
-import mod.gottsch.forge.eechelons.core.network.ModNetwork;
+import mod.gottsch.forge.eechelonsapi.EEchelonsApiMod;
+import mod.gottsch.forge.eechelonsapi.core.config.Config;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 
@@ -35,7 +34,5 @@ public class CommonSetup {
 
 	public static void init(final FMLCommonSetupEvent event) {
 		Config.instance.addRollingFileAppender(EEchelonsApiMod.MOD_ID);
-		ModNetwork.register();
-	}	
-
+	}
 }

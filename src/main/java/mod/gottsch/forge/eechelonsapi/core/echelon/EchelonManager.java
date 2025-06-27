@@ -17,14 +17,14 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with Enemy Echelons API.  If not, see <http://www.gnu.org/licenses/lgpl>.
  */
-package mod.gottsch.forge.eechelons.core.echelon;
+package mod.gottsch.forge.eechelonsapi.core.echelon;
 
-import mod.gottsch.forge.eechelons.core.capability.ModCapabilities;
-import mod.gottsch.forge.eechelons.core.capability.IDifficultyHandler;
-import mod.gottsch.forge.eechelons.core.config.EchelonConfigsHolder;
-import mod.gottsch.forge.eechelons.core.config.EchelonConfigsHolder.Config;
-import mod.gottsch.forge.eechelons.core.registry.DifficultyNameRegistry;
-import mod.gottsch.forge.eechelons.core.registry.EchelonRegistry;
+import mod.gottsch.forge.eechelonsapi.core.capability.ModCapabilities;
+import mod.gottsch.forge.eechelonsapi.core.capability.IDifficultyHandler;
+import mod.gottsch.forge.eechelonsapi.core.config.EchelonConfigsHolder;
+import mod.gottsch.forge.eechelonsapi.core.config.EchelonConfigsHolder.Config;
+import mod.gottsch.forge.eechelonsapi.core.registry.DifficultyNameRegistry;
+import mod.gottsch.forge.eechelonsapi.core.registry.EchelonRegistry;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;

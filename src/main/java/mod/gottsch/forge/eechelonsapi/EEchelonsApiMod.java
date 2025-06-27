@@ -17,10 +17,10 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with Enemy Echelons API.  If not, see <http://www.gnu.org/licenses/lgpl>.
  */
-package mod.gottsch.forge.eechelons;
+package mod.gottsch.forge.eechelonsapi;
 
-import mod.gottsch.forge.eechelons.core.config.Config;
-import mod.gottsch.forge.eechelons.core.setup.CommonSetup;
+import mod.gottsch.forge.eechelonsapi.core.config.Config;
+import mod.gottsch.forge.eechelonsapi.core.setup.CommonSetup;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;

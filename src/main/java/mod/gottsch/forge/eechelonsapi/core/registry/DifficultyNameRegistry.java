@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with Enemy Echelons API.  If not, see <http://www.gnu.org/licenses/lgpl>.
  */
-package mod.gottsch.forge.eechelons.core.registry;
+package mod.gottsch.forge.eechelonsapi.core.registry;
 
 import com.google.common.collect.Maps;
 import net.minecraft.resources.ResourceLocation;

@@ -1,0 +1,26 @@
+### EXAMPLE CUSTOM DIFFICULTY CONFIG FILE ###
+
+loadOrder = 1
+
+# this is an empty config meant for custom/modded mobs.
+[[configs]]
+	# the unique id of the echelon config. change to be unique to your mod. suggestion would be [mod_id]_echelons_config_[mc_version].toml
+	id = "eechelons:custom"
+
+	# an empty dimension list, meaning this will not be applied to anything. update when customizing.
+	dimensions=[]
+
+	# default white/black lists are set to apply to all mobs
+	modWhitelist = []
+	modBlacklist = []
+	mobWhitelist = []
+	mobBlacklist = []
+
+	replace = true
+
+	[[configs.echelons]]
+		min=-64
+		max=319
+	[[configs.echelons.histogram]]
+		difficulty=0
+		weight=1.0
