@@ -30,7 +30,8 @@ authors="gottsch" #optional
 
 # The description text for the mod (multi line!) (#mandatory)
 description='''
-A mod that assigns levels and attribute modifications to mobs based on the world height range that they spawn at.
+A mod api that supports assigning difficulty / attribute modifications to mobs based on the world height range that they spawn at.
+This mod is an api, it does not directly add modifications.
 '''
 
 # A dependency - use the . to indicate dependency for a specific modid. Dependencies are optional.
@@ -57,6 +58,6 @@ A mod that assigns levels and attribute modifications to mobs based on the world
     modId="gottschcore"
     mandatory=true
 # This version range declares a minimum of the current minecraft version up to but not including the next major version
-    versionRange="[2.4.0,3.0)"
+    versionRange="[2.5.0,3.0)"
     ordering="BEFORE"
     side="BOTH"
