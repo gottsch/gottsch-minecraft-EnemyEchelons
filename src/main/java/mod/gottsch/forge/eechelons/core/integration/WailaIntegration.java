@@ -17,7 +17,7 @@
  */
 package mod.gottsch.forge.eechelons.core.integration;
 
-import mod.gottsch.forge.eechelons.core.config.Config;
+import mod.gottsch.forge.eechelons.core.config.ModConfig;
 import net.minecraftforge.fml.ModList;
 
 /**
@@ -41,7 +41,7 @@ public class WailaIntegration {
 	}
 
 	public static boolean isEnabled() {
-		return Config.CLIENT.enableWailaIntegration.get()
+		return ModConfig.CLIENT.enableWailaIntegration.get()
 				&& (jadeLoaded || wthitLoaded);
 	}
 	

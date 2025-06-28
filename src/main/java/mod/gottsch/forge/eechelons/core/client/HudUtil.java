@@ -19,7 +19,7 @@ package mod.gottsch.forge.eechelons.core.client;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import mod.gottsch.forge.eechelons.EEchelons;
-import mod.gottsch.forge.eechelons.core.config.Config;
+import mod.gottsch.forge.eechelons.core.config.ModConfig;
 import mod.gottsch.forge.eechelons.core.event.HudEventHandler;
 import mod.gottsch.forge.eechelons.core.integration.ChampionsIntegration;
 import mod.gottsch.forge.eechelons.core.integration.WailaIntegration;
@@ -60,7 +60,7 @@ public class HudUtil {
 		String name = livingEntity.getCapability(ModCapabilities.DIFFICULTY_CAPABILITY).map(IDifficultyHandler::getName).orElse("");
 
 		// do not display is client doesn't want to show Level 0 hud.
-		if (difficulty == 0 && !Config.CLIENT.showLevel0Hud.get()) {
+		if (difficulty == 0 && !ModConfig.CLIENT.showLevel0Hud.get()) {
 			return false;
 		}
 
@@ -82,8 +82,8 @@ public class HudUtil {
 			int k = i / 2 - (textWidth > 55 ? MEDIUM_OFFSET_WIDTH : HUD_OFFSET_WIDTH);
 			int j = HUD_OFFSET_HEIGHT;
 			
-			int xOffset = Config.CLIENT.hudXOffset.get();
-			int yOffset = Config.CLIENT.hudYOffset.get();
+			int xOffset = ModConfig.CLIENT.hudXOffset.get();
+			int yOffset = ModConfig.CLIENT.hudYOffset.get();
 
 			/*
 			 * only recalc offsets for integration if the config offsets are still default values

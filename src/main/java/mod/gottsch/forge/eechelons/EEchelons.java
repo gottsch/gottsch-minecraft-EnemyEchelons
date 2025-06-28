@@ -22,17 +22,16 @@ package mod.gottsch.forge.eechelons;
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.conversion.ObjectConverter;
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
-import mod.gottsch.forge.eechelons.core.config.Config;
-
+import mod.gottsch.forge.eechelons.core.config.ModConfig;
 import mod.gottsch.forge.eechelons.core.setup.ClientSetup;
 import mod.gottsch.forge.eechelons.core.setup.CommonSetup;
 import mod.gottsch.forge.eechelons.core.setup.Registration;
+import mod.gottsch.forge.eechelonsapi.api.EnemyEchelonsApi;
+import mod.gottsch.forge.eechelonsapi.core.config.Config;
 import mod.gottsch.forge.eechelonsapi.core.config.EchelonConfigsHolder;
 import mod.gottsch.forge.eechelonsapi.core.config.NameConfigsHolder;
-import mod.gottsch.forge.eechelonsapi.core.echelon.EchelonManager;
 import mod.gottsch.forge.eechelonsapi.core.registry.DifficultyNameRegistry;
 import mod.gottsch.forge.eechelonsapi.core.registry.DifficultyNameRegistryEntry;
-import mod.gottsch.forge.gottschcore.GottschCore;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -84,9 +83,9 @@ public class EEchelons {
 		// register the deferred registries
 		Registration.init();
 		// register the server config
-		ModLoadingContext.get().registerConfig(Type.CLIENT, Config.CLIENT_SPEC);
-		ModLoadingContext.get().registerConfig(Type.COMMON, Config.COMMON_SPEC);
-		ModLoadingContext.get().registerConfig(Type.SERVER, Config.SERVER_SPEC);
+		ModLoadingContext.get().registerConfig(Type.CLIENT, ModConfig.CLIENT_SPEC);
+		ModLoadingContext.get().registerConfig(Type.COMMON, ModConfig.COMMON_SPEC);
+		ModLoadingContext.get().registerConfig(Type.SERVER, ModConfig.SERVER_SPEC);
 
 		// create the default config
 		copyToServerDefaultConfig(EEchelons.class, Config.ECHELONS_SPEC,
@@ -146,7 +145,7 @@ public class EEchelons {
 	 * On a config event.
 	 * @param event
 	 */
-	private void onLoadConfig(final ModConfigEvent event, List<EchelonConfigsHolder.Config> configs) {
+	private void onLoadConfig(final ModConfigEvent event) {
 		if (event.getConfig().getModId().equals(MOD_ID)) {
 			if (event.getConfig().getType() == Type.COMMON) {
 				IConfigSpec<?> spec = event.getConfig().getSpec();
@@ -157,6 +156,8 @@ public class EEchelons {
 					List<NameConfigsHolder.NameConfig> configs = Config.transformNameConfigs(commentedConfig);
 					List<DifficultyNameRegistryEntry> entries = configs.stream().map(DifficultyNameRegistryEntry::new).toList();
 					DifficultyNameRegistry.register(entries);
+
+					// TODO enable to load multiple naming configs
 				}
 			}
 
@@ -169,9 +170,9 @@ public class EEchelons {
 					// clear the EchelonManager.
 					// NOTE only EEchelons should do this,
 					// all other mods should only add to the manager.
-					if (configsLoaded == 0) {
-						EchelonManager.REGISTRY.clear();
-					}
+//					if (configsLoaded == 0) {
+//						EchelonManager.REGISTRY.clear();
+//					}
 
 					// TODO all echelon configs should be converted to objects first, then sorted by load order, then register()/build()
 
@@ -184,7 +185,8 @@ public class EEchelons {
 					// and the mobs need to be updated
 
 					// pass the EchelonConfigs to the build
-					EchelonManager.REGISTRY.register(configs);
+//					EchelonManager.REGISTRY.register(configs);
+					EnemyEchelonsApi.register(configs);
 
 					// TODO don't like this way of controlling when to load configs.
 					if (configsLoaded == 2) {
@@ -216,7 +218,8 @@ public class EEchelons {
 
 					EchelonConfigsHolder holder = new ObjectConverter().toObject(configData, EchelonConfigsHolder::new);
 					// build/register config file
-					EchelonManager.REGISTRY.register(holder.configs);
+//					EchelonManager.REGISTRY.register(holder.configs);
+					EnemyEchelonsApi.register(holder.configs);
 				});
 	}
 

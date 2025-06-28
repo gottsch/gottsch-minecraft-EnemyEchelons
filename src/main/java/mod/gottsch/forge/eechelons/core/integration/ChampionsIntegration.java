@@ -17,7 +17,7 @@
  */
 package mod.gottsch.forge.eechelons.core.integration;
 
-import mod.gottsch.forge.eechelons.core.config.Config;
+import mod.gottsch.forge.eechelons.core.config.ModConfig;
 import net.minecraft.world.entity.Entity;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.fml.ModList;
@@ -41,7 +41,7 @@ public class ChampionsIntegration {
 	}
 
 	public static boolean isEnabled() {
-		return Config.CLIENT.enableChampionsIntegration.get() && championsLoaded;
+		return ModConfig.CLIENT.enableChampionsIntegration.get() && championsLoaded;
 	}
 
 	public static boolean hasCapability(AttachCapabilitiesEvent<Entity> event) {

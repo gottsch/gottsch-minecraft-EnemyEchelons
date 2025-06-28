@@ -18,21 +18,17 @@
 package mod.gottsch.forge.eechelons.core.event;
 
 import mod.gottsch.forge.eechelons.EEchelons;
+import mod.gottsch.forge.eechelonsapi.api.EnemyEchelonsApi;
 import mod.gottsch.forge.eechelonsapi.core.capability.ModCapabilities;
-import mod.gottsch.forge.eechelonsapi.core.config.EchelonConfigsHolder;
-import mod.gottsch.forge.eechelonsapi.core.echelon.EchelonManager;
 import mod.gottsch.forge.eechelonsapi.core.network.DifficultyRequestToServer;
 import mod.gottsch.forge.eechelonsapi.core.network.ModNetwork;
 import mod.gottsch.forge.gottschcore.world.WorldInfo;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
-import net.minecraftforge.event.entity.living.LivingExperienceDropEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
-
-import java.util.Optional;
 
 /**
  * 
@@ -48,7 +44,6 @@ public class WorldEventHandler {
 	public static class ForgeBusSubscriber {
 
 		/**
-		 * 
 		 * @param event
 		 */
 		@SubscribeEvent
@@ -56,67 +51,25 @@ public class WorldEventHandler {
 
 			Entity entity = event.getEntity();
 
-			if (EchelonManager.isValidEntity(entity)) {
+			if (EnemyEchelonsApi.isValidEntity(entity)) {
 //				EEchelons.LOGGER.debug("entity joining world -> {} : {}", entity.getName().getString(), entity.getId());
 				/*
 				 * if on the client, request an update from the server
 				 */
 				if (WorldInfo.isClientSide(event.getEntity().level())) {
+					// TODO api to get cap
 					// get cap, ensure that level hasn't already been set.
 					if (entity.getCapability(ModCapabilities.DIFFICULTY_CAPABILITY).map(cap -> cap.getDifficulty() == -1).orElse(false)) {
+						// TODO api to send request to server
 						DifficultyRequestToServer message = new DifficultyRequestToServer(entity.getId(), entity.level().dimension().location().toString(),
 								entity.level().dimension().location().toString());
 						ModNetwork.CHANNEL.sendToServer(message);
 					}
+				} else {
+					Mob mob = (Mob) entity;
+					EnemyEchelonsApi.apply(mob);
 				}
-				else {
-					Mob mob = (Mob)entity;
-					EchelonManager.applyModifications(mob);
-				}
-			}
-		}
-
-		/**
-		 * Handles the LivingExperienceDropEvent to modify XP based on Echelon.
-		 * @param event The event.
-		 */
-		@SubscribeEvent
-		public static void onExperienceDrop(LivingExperienceDropEvent event) {
-			Entity entity = event.getEntity();
-			if (!(entity instanceof Mob mob)) {
-				return;
-			}
-
-			Optional<EchelonConfigsHolder.Config> echelonOpt = EchelonManager.REGISTRY.getEchelonConfig(mob);
-			if (echelonOpt.isEmpty()) {
-				return;
-			}
-
-			EchelonConfigsHolder.Config echelon = echelonOpt.get();
-
-			if (echelon.hasXpFactor()) {
-				// Get the echelon level from the capability
-				mob.getCapability(ModCapabilities.DIFFICULTY_CAPABILITY).ifPresent(cap -> {
-					int echelonLevel = cap.getDifficulty();
-					if (echelonLevel < 0) {
-						// Level not yet calculated, or calculation failed.
-						// For now, we'll skip XP modification.
-						// Alternatively, could trigger EchelonManager.applyModifications(mob) here
-						// or use a default level.
-						return;
-					}
-
-					double xpFactor = 1.0 + (echelon.getXpFactor() * echelonLevel);
-					double newXpReward = event.getOriginalExperience() * xpFactor;
-
-					if (echelon.getMaxXp() != null) {
-						newXpReward = Math.min(newXpReward, echelon.getMaxXp());
-					}
-
-					event.setDroppedExperience((int) newXpReward);
-				});
 			}
 		}
 	}
-
 }

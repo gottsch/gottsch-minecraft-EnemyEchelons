@@ -60,3 +60,10 @@ A mod that assigns levels and attribute modifications to mobs based on the world
     versionRange="[2.4.0,3.0)"
     ordering="BEFORE"
     side="BOTH"
+[[dependencies.eechelons]]
+    modId="eechelonsapi"
+    mandatory=true
+    # This version range declares a minimum of the current minecraft version up to but not including the next major version
+    versionRange="[1.0.0,2.0)"
+    ordering="BEFORE"
+    side="BOTH"

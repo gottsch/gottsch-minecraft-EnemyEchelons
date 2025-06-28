@@ -20,7 +20,7 @@ package mod.gottsch.forge.eechelons.core.event;
 import mod.gottsch.forge.eechelons.EEchelons;
 import mod.gottsch.forge.eechelons.core.client.HudUtil;
 import mod.gottsch.forge.eechelons.core.client.MouseUtil;
-import mod.gottsch.forge.eechelons.core.config.Config;
+import mod.gottsch.forge.eechelons.core.config.ModConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.world.entity.LivingEntity;
@@ -56,11 +56,11 @@ public class HudEventHandler {
 
 		@SubscribeEvent
 		public static void renderHealthHud(final RenderGuiOverlayEvent.Pre evt) {
-			if (Config.SERVER.showHud.get() && Config.CLIENT.showHud.get()) {
+			if (ModConfig.SERVER.showHud.get() && ModConfig.CLIENT.showHud.get()) {
 				Minecraft mc = Minecraft.getInstance();
 
 				Optional<LivingEntity> livingEntity;
-				if (Config.SERVER.hudRangeEnabled.get()) {
+				if (ModConfig.SERVER.hudRangeEnabled.get()) {
 					livingEntity = MouseUtil.getMouseOverEchelonMob(mc, evt.getPartialTick());
 				} else {
 					HitResult hitResult = mc.hitResult;

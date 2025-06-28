@@ -20,7 +20,7 @@
 package mod.gottsch.forge.eechelons.core.setup;
 
 import mod.gottsch.forge.eechelons.EEchelons;
-import mod.gottsch.forge.eechelons.core.config.Config;
+import mod.gottsch.forge.eechelons.core.config.ModConfig;
 import mod.gottsch.forge.eechelons.core.integration.ChampionsIntegration;
 import mod.gottsch.forge.eechelons.core.integration.WailaIntegration;
 import mod.gottsch.forge.eechelonsapi.core.network.ModNetwork;
@@ -36,7 +36,7 @@ import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 public class CommonSetup {
 
 	public static void init(final FMLCommonSetupEvent event) {
-		Config.instance.addRollingFileAppender(EEchelons.MOD_ID);
+		ModConfig.instance.addRollingFileAppender(EEchelons.MOD_ID);
 		ModNetwork.register();
 		ChampionsIntegration.init();
 		WailaIntegration.init();

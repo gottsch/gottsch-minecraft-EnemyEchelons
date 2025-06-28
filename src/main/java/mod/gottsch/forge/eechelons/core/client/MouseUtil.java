@@ -19,7 +19,7 @@ package mod.gottsch.forge.eechelons.core.client;
 
 import java.util.Optional;
 
-import mod.gottsch.forge.eechelons.core.config.Config;
+import mod.gottsch.forge.eechelons.core.config.ModConfig;
 import mod.gottsch.forge.eechelonsapi.core.capability.ModCapabilities;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.Entity;
@@ -40,7 +40,7 @@ public class MouseUtil {
 		Entity entity = mc.getCameraEntity();
 		if (entity != null) {
 			if (mc.level != null) {
-				double range = Config.SERVER.hudRange.get();
+				double range = ModConfig.SERVER.hudRange.get();
 				HitResult rayTraceResult = entity.pick(range, partialTicks, false);
 				Vec3 vec3d = entity.getEyePosition(partialTicks);
 				double distance = rayTraceResult.getLocation().distanceToSqr(vec3d);
