@@ -144,11 +144,10 @@ public class EchelonRegistryDataTest {
         EchelonRegistry registry = new EchelonRegistry();
         // toml catch-all, ie. like stronger mobs below's catch_all
         registry.register(tomlConfig("toml:catch_all", null, List.of("."), List.of(), List.of()));
-        // a config that whitelists the mod and one that whitelists a mob of it.
-        // NOTE sorted after the catch-all, as the search of the remaining configs stops at the first whitelist that doesn't match (1.0.x behaviour)
+        // a config that whitelists the mod and one that whitelists a mob of it, both sorted before the catch-all
         registry.setDataConfigs(List.of(
-                dataConfig("eechelonstest:by_mod", "{\"load_order\": 100, \"mod_whitelist\": [\"dungeons2\"], " + echelons(1) + "}"),
-                dataConfig("eechelonstest:by_mob", "{\"load_order\": 100, \"mob_whitelist\": [\"dungeons2:boss\"], " + echelons(1) + "}")));
+                dataConfig("eechelonstest:by_mod", "{\"load_order\": 0, \"mod_whitelist\": [\"dungeons2\"], " + echelons(1) + "}"),
+                dataConfig("eechelonstest:by_mob", "{\"load_order\": 0, \"mob_whitelist\": [\"dungeons2:boss\"], " + echelons(1) + "}")));
 
         assertEquals("eechelonstest:by_mod", registry.getEchelonConfig(OVERWORLD, SKELETON).map(EchelonConfigsHolder.Config::getId).orElse(null));
         assertEquals("eechelonstest:by_mob", registry.getEchelonConfig(OVERWORLD, BOSS).map(EchelonConfigsHolder.Config::getId).orElse(null));
@@ -175,6 +174,40 @@ public class EchelonRegistryDataTest {
         registry.setExclusions(new EchelonExclusions(Set.of(), Set.of(ZOMBIE)));
         assertTrue(registry.getEchelonConfig(OVERWORLD, ZOMBIE).isEmpty());
         assertTrue(registry.getEchelonConfig(OVERWORLD, SKELETON).isPresent());
+    }
+
+    @Test
+    public void searchSkipsWhitelistingConfigsThatDontMatch() {
+        EchelonRegistry registry = new EchelonRegistry();
+        // in the same dimension: a mod whitelist, a mob whitelist, then a config for everything else
+        registry.register(tomlConfig("toml:dungeons2", null, List.of("minecraft:overworld"), List.of("dungeons2"), List.of()));
+        registry.register(tomlConfig("toml:creeper", null, List.of("minecraft:overworld"), List.of(), List.of("minecraft:creeper")));
+        registry.register(tomlConfig("toml:overworld", null, List.of("minecraft:overworld"), List.of(), List.of()));
+        registry.register(tomlConfig("toml:catch_all", null, List.of("."), List.of(), List.of()));
+
+        // the whitelisting configs don't apply to a zombie, so the search goes on to the overworld config
+        assertEquals("toml:overworld", registry.searchEchelonsForMob(OVERWORLD, ZOMBIE).map(EchelonConfigsHolder.Config::getId).orElse(null));
+        assertEquals("toml:overworld", registry.getEchelonConfig(OVERWORLD, ZOMBIE).map(EchelonConfigsHolder.Config::getId).orElse(null));
+        // and in another dimension, on to the catch-all
+        ResourceLocation nether = new ResourceLocation("minecraft", "the_nether");
+        assertEquals("toml:catch_all", registry.getEchelonConfig(nether, ZOMBIE).map(EchelonConfigsHolder.Config::getId).orElse(null));
+        // the whitelisted mod and mob still get their own configs
+        assertEquals("toml:dungeons2", registry.getEchelonConfig(OVERWORLD, SKELETON).map(EchelonConfigsHolder.Config::getId).orElse(null));
+        assertEquals("toml:creeper", registry.getEchelonConfig(OVERWORLD, new ResourceLocation("minecraft", "creeper")).map(EchelonConfigsHolder.Config::getId).orElse(null));
+
+        // a mob whitelist only config is never picked for other mobs, even when it comes first
+        EchelonRegistry mobFirst = new EchelonRegistry();
+        mobFirst.register(tomlConfig("toml:creeper", null, List.of("minecraft:overworld"), List.of(), List.of("minecraft:creeper")));
+        mobFirst.register(tomlConfig("toml:catch_all", null, List.of("."), List.of(), List.of()));
+        assertEquals("toml:catch_all", mobFirst.getEchelonConfig(OVERWORLD, ZOMBIE).map(EchelonConfigsHolder.Config::getId).orElse(null));
+
+        // a mob blacklisted by the config that whitelists its mod still gets nothing (unchanged)
+        EchelonRegistry blacklisted = new EchelonRegistry();
+        EchelonConfigsHolder.Config vanilla = tomlConfig("toml:vanilla", null, List.of("minecraft:overworld"), List.of("minecraft"), List.of());
+        vanilla.setMobBlacklist(new ArrayList<>(List.of("minecraft:cow")));
+        blacklisted.register(vanilla);
+        blacklisted.register(tomlConfig("toml:catch_all", null, List.of("."), List.of(), List.of()));
+        assertTrue(blacklisted.getEchelonConfig(OVERWORLD, new ResourceLocation("minecraft", "cow")).isEmpty());
     }
 
     @Test

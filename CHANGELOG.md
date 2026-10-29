@@ -17,8 +17,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - With datapack configs present, the registry is rebuilt from the TOML configs plus the datapack configs, sorted by (load_order, id). TOML configs are never removed by a reload.
 - Mobs that have already spawned keep their difficulty; a reload only affects new spawns.
 
+### Fixed
+- Finding the config for a mob that isn't in any mob/mod whitelist no longer stops at the first config whose `modWhitelist` doesn't include the mob's mod. That config is skipped and the search moves on to the next one, so a whitelisting config no longer hides a later config or the catch-all.
+- A config with only a `mobWhitelist` now applies to those mobs only. Before, if the search reached it first, it was picked for every other mob too.
+- Blacklists behave as before: a mob blacklisted by the config that whitelists its mod still gets no modifications.
+
 ### Changed
-- None of the existing public API changed. Without datapack configs, the registries behave exactly as in 1.0.1.
+- None of the existing public API changed. Without datapack configs, the registries behave as in 1.0.1, apart from the search fix above. With the example `echelons_difficulty_config.toml`, every lookup gives the same result as in 1.0.1.
 
 ## [1.0.1] - 2025-11-20
 

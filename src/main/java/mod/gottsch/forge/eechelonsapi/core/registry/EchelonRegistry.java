@@ -350,10 +350,14 @@ public class EchelonRegistry {
                         return Optional.empty();
                     }
                 }
-                // if whitelist is not empty, and the mob's namespace is not included
+                // if whitelist is not empty, and the mob's namespace is not included, this config doesn't apply - try the next
                 else {
-                    return Optional.empty();
+                    continue;
                 }
+            }
+            // a config with only a mob whitelist applies to those mobs only (found by CONFIGS_BY_MOB), not to every other mob
+            else if (!e.getMobWhitelist().isEmpty()) {
+                continue;
             }
 
             if (e.getModWhitelist().isEmpty()
