@@ -38,6 +38,7 @@ import java.util.UUID;
 
 /**
  * TODO if separate Manager from Registry, the Registry would be instance while the Manager could be singleton.
+ *
  * @author Mark Gottschling on Jul 26, 2022
  */
 public class EchelonManager {
@@ -173,47 +174,47 @@ public class EchelonManager {
         applyModifications(echelonConfig.get(), mob, selectedDifficulty);
     }
 
-        /*
-         * this method does the actual applying of modifications
-         */
-        private static void applyModifications(EchelonConfigsHolder.Config config, Mob mob, Integer selectedDifficulty) {
+    /*
+     * this method does the actual applying of modifications
+     */
+    private static void applyModifications(EchelonConfigsHolder.Config config, Mob mob, Integer selectedDifficulty) {
 
-            mob.getCapability(ModCapabilities.DIFFICULTY_CAPABILITY).ifPresent(difficultyHandler -> {
+        mob.getCapability(ModCapabilities.DIFFICULTY_CAPABILITY).ifPresent(difficultyHandler -> {
 
-                // health
-                modifyHealth(mob, selectedDifficulty, config);
+            // health
+            modifyHealth(mob, selectedDifficulty, config);
 
-                // damage
-                modifyDamage(mob, selectedDifficulty, config);
+            // damage
+            modifyDamage(mob, selectedDifficulty, config);
 
-                // armor
-                modifyArmor(mob, selectedDifficulty, config);
+            // armor
+            modifyArmor(mob, selectedDifficulty, config);
 
-                // armor
-                modifyArmorToughness(mob, selectedDifficulty, config);
+            // armor
+            modifyArmorToughness(mob, selectedDifficulty, config);
 
-                // knockback
-                modifyKnockback(mob, selectedDifficulty, config);
+            // knockback
+            modifyKnockback(mob, selectedDifficulty, config);
 
-                // knockback resist
-                modifyKnockbackResist(mob, selectedDifficulty, config);
+            // knockback resist
+            modifyKnockbackResist(mob, selectedDifficulty, config);
 
-                // speed
-                modifySpeed(mob, selectedDifficulty, config);
+            // speed
+            modifySpeed(mob, selectedDifficulty, config);
 
-                // fly speed
-                modifyFlyingSpeed(mob, selectedDifficulty, config);
+            // fly speed
+            modifyFlyingSpeed(mob, selectedDifficulty, config);
 
-                // experience
-                // NOTE this is handled by the LivingExperienceDropEvent (Forge)
-    //				modifyXp(mob, difficulty, echelonConfig.get());
+            // experience
+            // NOTE this is handled by the LivingExperienceDropEvent (Forge)
+            //				modifyXp(mob, difficulty, echelonConfig.get());
 
-                // update the capability
-                difficultyHandler.setDifficulty(selectedDifficulty);
+            // update the capability
+            difficultyHandler.setDifficulty(selectedDifficulty);
 
-                Optional<String> difficultyName = DifficultyNameRegistry.getDifficultyName(mob, selectedDifficulty);
-                difficultyName.ifPresent(difficultyHandler::setName);
-            });
+            Optional<String> difficultyName = DifficultyNameRegistry.getDifficultyName(mob, selectedDifficulty);
+            difficultyName.ifPresent(difficultyHandler::setName);
+        });
     }
 
     private static void modifySpeed(Mob mob, Integer difficulty, Config echelon) {
@@ -302,14 +303,14 @@ public class EchelonManager {
         }
     }
 
-    private static void modifyDamage(Mob mob, int difficulty, Config echelon) {
-        if (echelon.hasDamageFactor()) {
+    private static void modifyDamage(Mob mob, int difficulty, Config config) {
+        if (config.hasDamageFactor()) {
             AttributeInstance attribute = mob.getAttribute(Attributes.ATTACK_DAMAGE);
             if (attribute != null) {
                 // Remove any existing modifier from this mod
                 attribute.removeModifier(ECHELON_ATTACK_DAMAGE_MODIFIER_ID);
 
-                double damageMultiplier = (echelon.getDamageFactor() * difficulty);
+                double damageMultiplier = (config.getDamageFactor() * difficulty);
 
                 // Apply new modifier only if it has a significant effect
                 if (Math.abs(damageMultiplier) > 1.0E-7) { // Check if modifierAmount is not effectively zero
