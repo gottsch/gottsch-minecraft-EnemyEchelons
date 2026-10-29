@@ -25,6 +25,8 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
 import org.apache.commons.lang3.ObjectUtils;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -37,22 +39,85 @@ import java.util.function.Predicate;
 public class DifficultyNameRegistry {
     private static final ResourceLocation ALL_MOBS = new ResourceLocation(".", ".");
 
-    // ie Map<ID, Entry>
-    private static Map<ResourceLocation, DifficultyNameRegistryEntry> REGISTRY = Maps.newHashMap();
+    // ie Map<ID, Entry>. linked so that searches follow registration order.
+    private static Map<ResourceLocation, DifficultyNameRegistryEntry> REGISTRY = Maps.newLinkedHashMap();
 
     private static Map<ResourceLocation, DifficultyNameRegistryEntry> BY_MOB = Maps.newHashMap();
 
     private static Map<String, DifficultyNameRegistryEntry> BY_MOD = Maps.newHashMap();
 
+    /*
+     * the two sources of entries are kept apart so that a datapack reload never wipes the entries
+     * registered through register() (ie. toml or code), and vice versa.
+     */
+    private static final List<DifficultyNameRegistryEntry> REGISTERED = new ArrayList<>();
+    private static final Map<ResourceLocation, DifficultyNameRegistryEntry> REGISTERED_BY_KEY = Maps.newLinkedHashMap();
+    private static final List<DifficultyNameRegistryEntry> DATA_ENTRIES = new ArrayList<>();
+
+    private static final Comparator<DifficultyNameRegistryEntry> LOAD_ORDER = Comparator
+            .comparingInt((DifficultyNameRegistryEntry e) -> e.getLoadOrder())
+            .thenComparing(e -> e.getId() == null ? "" : e.getId().toString());
+
+    // NOTE left as a no-op, as in 1.0.x
     public static void clear() {
 
     }
 
-    public static void register(List<DifficultyNameRegistryEntry> entries) {
+    public static synchronized void register(List<DifficultyNameRegistryEntry> entries) {
         if (ObjectUtils.isEmpty(entries)) {
             return;
         }
+        REGISTERED.addAll(entries);
+        if (DATA_ENTRIES.isEmpty()) {
+            index(entries);
+        } else {
+            rebuild();
+        }
+    }
 
+    /**
+     * replaces the datapack entries and rebuilds the registry.
+     * if there are no datapack entries before or after, nothing is touched.
+     * @param entries
+     */
+    public static synchronized void setDataEntries(List<DifficultyNameRegistryEntry> entries) {
+        boolean hadData = !DATA_ENTRIES.isEmpty();
+        DATA_ENTRIES.clear();
+        if (entries != null) {
+            DATA_ENTRIES.addAll(entries);
+        }
+        if (hadData || !DATA_ENTRIES.isEmpty()) {
+            rebuild();
+        }
+    }
+
+    /**
+     * @return the registered entries, in registry order. ie. first is highest precedence.
+     */
+    public static synchronized List<DifficultyNameRegistryEntry> getEntries() {
+        return List.copyOf(REGISTRY.values());
+    }
+
+    /*
+     * without datapack entries, the registered entries are indexed in registration order (as in 1.0.x).
+     * with datapack entries, all entries are indexed by (loadOrder, id).
+     */
+    private static void rebuild() {
+        REGISTRY.clear();
+        BY_MOB.clear();
+        BY_MOD.clear();
+
+        List<DifficultyNameRegistryEntry> entries = new ArrayList<>(REGISTERED);
+        if (!DATA_ENTRIES.isEmpty()) {
+            entries.addAll(DATA_ENTRIES);
+            // stable sort, so equal keys keep their registration order
+            entries.sort(LOAD_ORDER);
+        }
+        index(entries);
+        REGISTERED_BY_KEY.forEach(REGISTRY::put);
+    }
+
+    private static void index(List<DifficultyNameRegistryEntry> entries) {
         entries.forEach(entry -> {
 
             // register all entries by id
@@ -136,7 +201,8 @@ public class DifficultyNameRegistry {
         return Optional.empty();
     }
 
-    public static Optional<DifficultyNameRegistryEntry> register(ResourceLocation key, DifficultyNameRegistryEntry entry) {
+    public static synchronized Optional<DifficultyNameRegistryEntry> register(ResourceLocation key, DifficultyNameRegistryEntry entry) {
+        REGISTERED_BY_KEY.put(key, entry);
         return Optional.ofNullable(REGISTRY.put(key, entry));
     }
 

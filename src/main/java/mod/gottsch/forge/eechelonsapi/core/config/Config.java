@@ -101,6 +101,8 @@ public final class Config extends AbstractConfig {
 		// NOTE this field name MUST match the defined name in EchelonsFileConfig.
 		// TODO deprecated setting of the holder to property in config
 		ECHELONS_CONFIG.echelonConfigsHolder = new ObjectConverter().toObject(configData, EchelonConfigsHolder::new);
+		// carry the file's loadOrder onto each config, for sorting alongside datapack configs
+		ECHELONS_CONFIG.echelonConfigsHolder.applyLoadOrder();
 		// get the list from the holder and set the config property
 		configs = ECHELONS_CONFIG.echelonConfigsHolder.configs;
 		return configs;

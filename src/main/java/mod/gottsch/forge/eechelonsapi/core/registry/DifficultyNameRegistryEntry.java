@@ -45,6 +45,9 @@ public class DifficultyNameRegistryEntry {
     // ie Map<Difficulty, Name>
     private Map<Integer, String> difficultyNames;
 
+    // if no loadOrder is provided, defaults to 99 (low precedence)
+    private Integer loadOrder;
+
     public DifficultyNameRegistryEntry() {
 
     }
@@ -56,6 +59,7 @@ public class DifficultyNameRegistryEntry {
         }
 
         this.id = new ResourceLocation(config.getId());
+        this.loadOrder = config.getLoadOrder();
         config.getMobBlacklist().forEach(s -> this.getMobBlacklist().add(new ResourceLocation(s)));
         config.getMobWhitelist().forEach(s -> this.getMobWhitelist().add(new ResourceLocation(s)));
         if (!config.getModBlacklist().isEmpty()) {
@@ -139,5 +143,13 @@ public class DifficultyNameRegistryEntry {
 
     public void setModWhitelist(List<String> modWhitelist) {
         this.modWhitelist = modWhitelist;
+    }
+
+    public Integer getLoadOrder() {
+        return loadOrder == null ? 99 : loadOrder;
+    }
+
+    public void setLoadOrder(Integer loadOrder) {
+        this.loadOrder = loadOrder;
     }
 }

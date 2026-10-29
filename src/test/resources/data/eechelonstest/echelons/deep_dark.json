@@ -1,0 +1,46 @@
+{
+  "load_order": 5,
+  "dimensions": ["minecraft:overworld"],
+  "hp_factor": 0.25,
+  "max_hp": 200.0,
+  "damage_factor": 0.2,
+  "max_damage": 10.0,
+  "knockback_increment": 0.2,
+  "max_knockback": 2.0,
+  "knockback_resist_increment": 0.1,
+  "max_knockback_resist": 0.8,
+  "armor_factor": 0.1,
+  "max_armor": 20.0,
+  "armor_toughness_factor": 0.05,
+  "max_armor_toughness": 8.0,
+  "speed_factor": 0.05,
+  "max_speed": 0.35,
+  "flying_speed_factor": 0.01,
+  "max_flying_speed": 0.15,
+  "xp_factor": 0.2,
+  "max_xp": 100.0,
+  "replace": false,
+  "mod_whitelist": ["minecraft"],
+  "mod_blacklist": [],
+  "mob_whitelist": [],
+  "mob_blacklist": ["minecraft:creeper", "minecraft:warden"],
+  "echelons": [
+    {
+      "id": "eechelonstest:surface",
+      "min": 0,
+      "max": 319,
+      "histogram": [
+        { "difficulty": 0, "weight": 200.0 },
+        { "difficulty": 1, "weight": 100.0 }
+      ]
+    },
+    {
+      "min": -64,
+      "max": -1,
+      "histogram": [
+        { "difficulty": 2, "weight": 100.0 },
+        { "difficulty": 3, "weight": 25.0 }
+      ]
+    }
+  ]
+}

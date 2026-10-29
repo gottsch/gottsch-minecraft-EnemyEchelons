@@ -23,6 +23,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import mod.gottsch.forge.eechelonsapi.core.config.EchelonConfigsHolder;
+import mod.gottsch.forge.eechelonsapi.core.config.EchelonExclusions;
 import mod.gottsch.forge.gottschcore.bst.Interval;
 import mod.gottsch.forge.gottschcore.bst.IntervalTree;
 import mod.gottsch.forge.gottschcore.random.WeightedCollection;
@@ -34,6 +35,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -67,17 +71,129 @@ public class EchelonRegistry {
      */
     private final Map<Pair<ResourceLocation, ResourceLocation>, EchelonConfigsHolder.Config> CONFIGS_BY_MOB = Maps.newHashMap();
 
-    public void clear() {
+    /*
+     * the configs in the order they were indexed
+     */
+    private final List<EchelonConfigsHolder.Config> INDEXED = new ArrayList<>();
+
+    /*
+     * the two sources of configs are kept apart so that a datapack reload never wipes the configs
+     * registered through register() (ie. toml or code), and vice versa.
+     */
+    private final List<EchelonConfigsHolder.Config> registeredConfigs = new ArrayList<>();
+    private final List<EchelonConfigsHolder.Config> dataConfigs = new ArrayList<>();
+
+    /*
+     * mods/mobs that no config in this registry applies to.
+     */
+    private volatile EchelonExclusions exclusions = EchelonExclusions.EMPTY;
+
+    private static final Comparator<EchelonConfigsHolder.Config> LOAD_ORDER = Comparator
+            .comparingInt((EchelonConfigsHolder.Config c) -> c.getLoadOrder())
+            .thenComparing(c -> StringUtils.defaultString(c.getId()));
+
+    /**
+     * clears all configs registered through register().
+     * datapack configs (if any) are owned by the reload listener and remain registered.
+     */
+    public synchronized void clear() {
+        registeredConfigs.clear();
+        rebuild();
+    }
+
+    public synchronized void register(EchelonConfigsHolder.Config echelonConfig) {
+        registeredConfigs.add(echelonConfig);
+        if (dataConfigs.isEmpty()) {
+            index(echelonConfig);
+        } else {
+            rebuild();
+        }
+    }
+
+    public synchronized void register(List<EchelonConfigsHolder.Config> configs) {
+        if (ObjectUtils.isEmpty(configs)) {
+            return;
+        }
+        registeredConfigs.addAll(configs);
+        if (dataConfigs.isEmpty()) {
+            configs.forEach(this::index);
+        } else {
+            rebuild();
+        }
+    }
+
+    /**
+     * replaces the datapack configs and rebuilds the registry.
+     * if there are no datapack configs before or after, nothing is touched.
+     * @param configs
+     */
+    public synchronized void setDataConfigs(List<EchelonConfigsHolder.Config> configs) {
+        boolean hadData = !dataConfigs.isEmpty();
+        dataConfigs.clear();
+        if (configs != null) {
+            dataConfigs.addAll(configs);
+        }
+        if (hadData || !dataConfigs.isEmpty()) {
+            rebuild();
+        }
+    }
+
+    public synchronized List<EchelonConfigsHolder.Config> getDataConfigs() {
+        return List.copyOf(dataConfigs);
+    }
+
+    /**
+     * rebuilds the indexes from both sources.
+     * without datapack configs, the registered configs are indexed in registration order (as in 1.0.x).
+     * with datapack configs, all configs are indexed by (loadOrder, id).
+     */
+    private void rebuild() {
         CONFIGS_BY_ID.clear();
         CONFIGS.clear();
         CONFIGS_BY_MOD.clear();
         CONFIGS_BY_MOB.clear();
+        INDEXED.clear();
+
+        List<EchelonConfigsHolder.Config> configs = new ArrayList<>(registeredConfigs);
+        if (!dataConfigs.isEmpty()) {
+            configs.addAll(dataConfigs);
+            // stable sort, so equal keys keep their registration order
+            configs.sort(LOAD_ORDER);
+        }
+        configs.forEach(this::index);
     }
 
-    public void register(EchelonConfigsHolder.Config echelonConfig) {
+    /**
+     * @return the indexed configs, in the order they were indexed. ie. first is highest precedence.
+     */
+    public synchronized List<EchelonConfigsHolder.Config> getConfigs() {
+        return Collections.unmodifiableList(new ArrayList<>(INDEXED));
+    }
+
+    public EchelonExclusions getExclusions() {
+        return exclusions;
+    }
+
+    public void setExclusions(EchelonExclusions exclusions) {
+        this.exclusions = exclusions == null ? EchelonExclusions.EMPTY : exclusions;
+    }
+
+    public boolean isExcluded(ResourceLocation mobId) {
+        return exclusions.isExcluded(mobId);
+    }
+
+    public boolean isExcluded(Mob mob) {
+        return isExcluded(EntityType.getKey(mob.getType()));
+    }
+
+    /*
+     * builds the derived structures (weighted collections, histogram tree) and adds the config to the indexes.
+     */
+    private void index(EchelonConfigsHolder.Config echelonConfig) {
         if (ObjectUtils.isEmpty(echelonConfig.getEchelons())) {
             return;
         }
+        INDEXED.add(echelonConfig);
 
         // TODO need to check if an entry exists already and if the replace property is set.
         // add to map
@@ -159,20 +275,25 @@ public class EchelonRegistry {
         });
     }
 
-    public void register(List<EchelonConfigsHolder.Config> configs) {
-        if (ObjectUtils.isEmpty(configs)) {
-            return;
-        }
-        configs.forEach(this::register);
-    }
-
     /**
      * @param mob
      * @return
      */
     public Optional<EchelonConfigsHolder.Config> getEchelonConfig(Mob mob) {
-        ResourceLocation mobId = EntityType.getKey(mob.getType());
-        Pair<ResourceLocation, ResourceLocation> keyPair = new ImmutablePair<>(mob.level().dimension().location(), mobId);
+        return getEchelonConfig(mob.level().dimension().location(), EntityType.getKey(mob.getType()));
+    }
+
+    /**
+     * @param dimension
+     * @param mobId
+     * @return
+     */
+    public Optional<EchelonConfigsHolder.Config> getEchelonConfig(ResourceLocation dimension, ResourceLocation mobId) {
+        // an excluded mob is blacklisted from every config, regardless of whitelists
+        if (isExcluded(mobId)) {
+            return Optional.empty();
+        }
+        Pair<ResourceLocation, ResourceLocation> keyPair = new ImmutablePair<>(dimension, mobId);
         if (CONFIGS_BY_MOB.containsKey(keyPair)) {
             return Optional.of(CONFIGS_BY_MOB.get(keyPair));
         } else {
@@ -181,7 +302,7 @@ public class EchelonRegistry {
                 return Optional.of(CONFIGS_BY_MOB.get(keyPair));
             } else {
                 // create a key pair for the mod
-                Pair<ResourceLocation, String> modKeyPair = new ImmutablePair<>(mob.level().dimension().location(), keyPair.getValue().getNamespace());
+                Pair<ResourceLocation, String> modKeyPair = new ImmutablePair<>(dimension, keyPair.getValue().getNamespace());
                 // check by mod (ie whitelisted mods)
                 if (CONFIGS_BY_MOD.containsKey(modKeyPair)) {
                     EchelonConfigsHolder.Config config = CONFIGS_BY_MOD.get(modKeyPair);
@@ -201,9 +322,9 @@ public class EchelonRegistry {
                 }
 
                 // search all remaining configs
-                Optional<EchelonConfigsHolder.Config> echelon = searchEchelonsForMob(mob.level().dimension().location(), mob);
+                Optional<EchelonConfigsHolder.Config> echelon = searchEchelonsForMob(dimension, mobId);
                 if (echelon.isEmpty()) {
-                    echelon = searchEchelonsForMob(ALL_DIMENSION, mob);
+                    echelon = searchEchelonsForMob(ALL_DIMENSION, mobId);
                 }
                 return echelon;
             }
@@ -211,8 +332,14 @@ public class EchelonRegistry {
     }
 
     public Optional<EchelonConfigsHolder.Config> searchEchelonsForMob(ResourceLocation dimension, Mob entity) {
+        return searchEchelonsForMob(dimension, EntityType.getKey(entity.getType()));
+    }
+
+    public Optional<EchelonConfigsHolder.Config> searchEchelonsForMob(ResourceLocation dimension, ResourceLocation mob) {
         Optional<EchelonConfigsHolder.Config> echelon = Optional.empty();
-        ResourceLocation mob = EntityType.getKey(entity.getType());
+        if (isExcluded(mob)) {
+            return echelon;
+        }
 
         // for each config in a given dimension
         for (EchelonConfigsHolder.Config e : CONFIGS.get(dimension)) {

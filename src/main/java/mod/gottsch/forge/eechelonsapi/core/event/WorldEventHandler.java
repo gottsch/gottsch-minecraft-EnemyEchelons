@@ -22,9 +22,12 @@ package mod.gottsch.forge.eechelonsapi.core.event;
 import mod.gottsch.forge.eechelonsapi.EEchelonsApiMod;
 import mod.gottsch.forge.eechelonsapi.core.capability.ModCapabilities;
 import mod.gottsch.forge.eechelonsapi.core.config.EchelonConfigsHolder;
+import mod.gottsch.forge.eechelonsapi.core.data.EchelonDataLoader;
+import mod.gottsch.forge.eechelonsapi.core.data.EchelonDataReloadListener;
 import mod.gottsch.forge.eechelonsapi.core.echelon.EchelonManager;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
+import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.event.entity.living.LivingExperienceDropEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -44,6 +47,21 @@ public class WorldEventHandler {
 	 */
 	@Mod.EventBusSubscriber(modid = EEchelonsApiMod.MOD_ID, bus = EventBusSubscriber.Bus.FORGE)
 	public static class ForgeBusSubscriber {
+
+		/**
+		 * Loads the datapack echelon configs, exclusions and difficulty names on server start and /reload.
+		 * Mobs that have already spawned keep their difficulty; a reload only affects new spawns.
+		 * @param event The event.
+		 */
+		@SubscribeEvent
+		public static void onAddReloadListeners(AddReloadListenerEvent event) {
+			event.addListener(new EchelonDataReloadListener(EchelonDataLoader.ECHELONS_DIRECTORY,
+					files -> EchelonDataLoader.applyEchelonConfigs(EchelonManager.REGISTRY, files)));
+			event.addListener(new EchelonDataReloadListener(EchelonDataLoader.EXCLUSIONS_DIRECTORY,
+					files -> EchelonDataLoader.applyExclusions(EchelonManager.REGISTRY, files)));
+			event.addListener(new EchelonDataReloadListener(EchelonDataLoader.DIFFICULTY_NAMES_DIRECTORY,
+					EchelonDataLoader::applyNameConfigs));
+		}
 
 		/**
 		 * Handles the LivingExperienceDropEvent to modify XP based on Echelon.

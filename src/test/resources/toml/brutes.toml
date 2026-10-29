@@ -1,0 +1,17 @@
+# the TOML equivalent of data/eechelonstest/difficulty_names/brutes.json
+[[nameConfigs]]
+	id = "eechelonstest:brutes"
+	loadOrder = 10
+	modWhitelist = ["minecraft"]
+	modBlacklist = []
+	mobWhitelist = ["minecraft:zombie", "minecraft:skeleton"]
+	mobBlacklist = ["minecraft:creeper"]
+	[[nameConfigs.difficultyNames]]
+		difficulty = 0
+		name = "Vanilla"
+	[[nameConfigs.difficultyNames]]
+		difficulty = 1
+		name = "Brute"
+	[[nameConfigs.difficultyNames]]
+		difficulty = 2
+		name = "Captain"
