@@ -20,6 +20,7 @@
 package mod.gottsch.forge.eechelonsapi.core.data;
 
 import com.google.gson.JsonParser;
+import mod.gottsch.forge.eechelonsapi.core.command.RegistryDump;
 import mod.gottsch.forge.eechelonsapi.core.config.EchelonConfigsHolder;
 import mod.gottsch.forge.eechelonsapi.core.config.EchelonExclusions;
 import mod.gottsch.forge.eechelonsapi.core.config.NameConfigsHolder;
@@ -209,6 +210,92 @@ public class EchelonRegistryDataTest {
         blacklisted.register(vanilla);
         blacklisted.register(tomlConfig("toml:catch_all", null, List.of("."), List.of(), List.of()));
         assertTrue(blacklisted.getEchelonConfig(OVERWORLD, new ResourceLocation("minecraft", "cow")).isEmpty());
+    }
+
+    private static EchelonConfigsHolder.Config replacing(EchelonConfigsHolder.Config config) {
+        config.setReplace(true);
+        return config;
+    }
+
+    @Test
+    public void replaceTakesThePlaceOfTheEarlierConfigWithTheSameId() {
+        EchelonRegistry registry = new EchelonRegistry();
+        EchelonConfigsHolder.Config first = tomlConfig("toml:x", null, List.of("minecraft:overworld"), List.of("minecraft"), List.of());
+        registry.register(first);
+        registry.register(tomlConfig("toml:y", null, List.of("."), List.of(), List.of()));
+
+        EchelonConfigsHolder.Config second = replacing(tomlConfig("toml:x", null, List.of("minecraft:overworld"), List.of("minecraft"), List.of()));
+        registry.register(second);
+        // the replacement takes the earlier config's place, and so its precedence
+        assertEquals(List.of("toml:x", "toml:y"), ids(registry));
+        assertSame(second, registry.getConfigs().get(0));
+        assertSame(second, registry.getEchelonConfig(OVERWORLD, ZOMBIE).orElse(null));
+
+        // without replace, configs with the same id are all kept, and the first wins the lookups (as in 1.0.x)
+        EchelonConfigsHolder.Config third = tomlConfig("toml:x", null, List.of("minecraft:overworld"), List.of("minecraft"), List.of());
+        registry.register(List.of(third));
+        assertEquals(List.of("toml:x", "toml:y", "toml:x"), ids(registry));
+        assertSame(second, registry.getEchelonConfig(OVERWORLD, ZOMBIE).orElse(null));
+
+        // a replacement replaces every earlier config with its id, ie. re-registering a toml file without clear()
+        EchelonConfigsHolder.Config fourth = replacing(tomlConfig("toml:x", null, List.of("minecraft:overworld"), List.of("minecraft"), List.of()));
+        registry.register(List.of(fourth));
+        assertEquals(List.of("toml:x", "toml:y"), ids(registry));
+        assertSame(fourth, registry.getEchelonConfig(OVERWORLD, ZOMBIE).orElse(null));
+    }
+
+    @Test
+    public void dataConfigCanReplaceATomlConfig() {
+        EchelonRegistry registry = new EchelonRegistry();
+        EchelonConfigsHolder.Config toml = replacing(tomlConfig("eechelons:default", 0, List.of("minecraft:overworld"), List.of("minecraft"), List.of()));
+        registry.register(toml);
+        registry.register(tomlConfig("eechelons:catch_all", 0, List.of("."), List.of(), List.of()));
+
+        // same (load_order, id) sorts the data config after the toml one, so it is the later one and replaces it
+        EchelonConfigsHolder.Config data = dataConfig("eechelons:default",
+                "{\"load_order\": 0, \"replace\": true, \"dimensions\": [\"minecraft:overworld\"], \"mod_whitelist\": [\"minecraft\"], " + echelons(2) + "}");
+        registry.setDataConfigs(List.of(data));
+        assertEquals(List.of("eechelons:catch_all", "eechelons:default"), ids(registry));
+        assertSame(data, registry.getEchelonConfig(OVERWORLD, ZOMBIE).orElse(null));
+
+        List<String> dump = RegistryDump.echelons(registry);
+        assertTrue(dump.stream().anyMatch(l -> l.contains("eechelons:default [data]") && l.contains("load_order=0") && l.contains("replace")), dump.toString());
+        assertTrue(dump.stream().anyMatch(l -> l.contains("- eechelons:default [toml] replaced by eechelons:default [data]")), dump.toString());
+
+        // a data config that sorts first is the earlier one, so the toml config (replace = true) replaces it
+        registry.setDataConfigs(List.of(dataConfig("eechelons:default", "{\"load_order\": -1, " + echelons(2) + "}")));
+        assertSame(toml, registry.getEchelonConfig(OVERWORLD, ZOMBIE).orElse(null));
+
+        // and without the data, the toml config is back
+        registry.setDataConfigs(List.of());
+        assertSame(toml, registry.getEchelonConfig(OVERWORLD, ZOMBIE).orElse(null));
+        assertEquals(List.of("eechelons:default", "eechelons:catch_all"), ids(registry));
+    }
+
+    @Test
+    public void dumpListsConfigsInOrderWithSourcesAndExclusions() {
+        EchelonRegistry registry = new EchelonRegistry();
+        EchelonConfigsHolder.Config toml = tomlConfig("toml:catch_all", null, List.of("."), List.of(), List.of());
+        toml.setMobBlacklist(new ArrayList<>(List.of("minecraft:a", "minecraft:b", "minecraft:c", "minecraft:d", "minecraft:e", "minecraft:f", "minecraft:g", "minecraft:h")));
+        registry.register(toml);
+        registry.setDataConfigs(List.of(dataConfig("eechelonstest:deep", "{\"load_order\": 1, " + echelons(1) + "}")));
+        registry.setExclusions(new EchelonExclusions(Set.of("dungeons2"), Set.of()));
+
+        List<String> dump = RegistryDump.echelons(registry);
+        assertEquals("Echelon configs, in order of precedence (2):", dump.get(0));
+        assertTrue(dump.get(1).startsWith("  1. eechelonstest:deep [data] load_order=1"), dump.get(1));
+        assertTrue(dump.get(2).startsWith("  2. toml:catch_all [toml] load_order=99"), dump.get(2));
+        // long lists are cut short
+        assertTrue(dump.get(2).contains("mob_blacklist=[minecraft:a, minecraft:b, minecraft:c, minecraft:d, minecraft:e, minecraft:f, ... +2]"), dump.get(2));
+        assertEquals("Exclusions: mods=[dungeons2] mobs=[]", dump.get(dump.size() - 1));
+
+        DifficultyNameRegistryEntry names = new DifficultyNameRegistryEntry();
+        names.setId(new ResourceLocation("toml", "dump_names"));
+        names.registerDifficultyName(2, "Captain");
+        names.registerDifficultyName(1, "Brute");
+        List<String> nameDump = RegistryDump.names(List.of(names), List.of());
+        assertTrue(nameDump.get(1).startsWith("  1. toml:dump_names [toml] load_order=99"), nameDump.get(1));
+        assertTrue(nameDump.get(1).endsWith("names={1=Brute, 2=Captain}"), nameDump.get(1));
     }
 
     @Test

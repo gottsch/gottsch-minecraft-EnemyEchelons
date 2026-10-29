@@ -98,7 +98,7 @@ public class DifficultyNameRegistryEntry {
     }
 
     public void registerDifficultyName(Integer difficulty, String name) {
-        this.difficultyNames.put(difficulty, name);
+        getDifficultyNames().put(difficulty, name);
     }
 
     public Map<Integer, String> getDifficultyNames() {

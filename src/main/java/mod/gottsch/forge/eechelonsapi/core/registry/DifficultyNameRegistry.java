@@ -106,6 +106,13 @@ public class DifficultyNameRegistry {
         return List.copyOf(INDEXES.REGISTRY.values());
     }
 
+    /**
+     * @return the entries loaded from datapacks
+     */
+    public static synchronized List<DifficultyNameRegistryEntry> getDataEntries() {
+        return List.copyOf(DATA_ENTRIES);
+    }
+
     /*
      * without datapack entries, the registered entries are indexed in registration order (as in 1.0.x).
      * with datapack entries, all entries are indexed by (loadOrder, id).

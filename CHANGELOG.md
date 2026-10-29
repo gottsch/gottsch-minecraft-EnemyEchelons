@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Datapack files are strict: an unknown key or a malformed value is logged as an error naming the file, and that file is skipped.
 - With datapack configs present, the registry is rebuilt from the TOML configs plus the datapack configs, sorted by (load_order, id). TOML configs are never removed by a reload.
 - Mobs that have already spawned keep their difficulty; a reload only affects new spawns.
+- `replace` now works: a config with `replace = true` takes the place (and precedence) of every earlier config with the same id, TOML or datapack. Without it, configs with the same id are all kept, as before. This lets a datapack replace a TOML config by id, and a TOML file re-registered without `clear()` replaces its old copy instead of shadowing the change.
+- `/eechelons dump` (permission level 2) lists the global echelon configs in order of precedence with their source (toml or data), the configs left out (ex. replaced), the exclusions and the difficulty names, in chat and in the log.
 
 ### Fixed
 - Finding the config for a mob that isn't in any mob/mod whitelist no longer stops at the first config whose `modWhitelist` doesn't include the mob's mod. That config is skipped and the search moves on to the next one, so a whitelisting config no longer hides a later config or the catch-all.
@@ -23,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Blacklists behave as before: a mob blacklisted by the config that whitelists its mod still gets no modifications.
 - The flying speed modifier was added under the movement speed modifier's UUID, so removing the flying speed modifier never found it. The values applied are unchanged.
 - A mob wildcard, ex. `"minecraft:*"`, in a difficulty-name config's mob lists crashed while loading the config. It now moves to the matching mod list, as it does for echelon configs. An invalid mob id is skipped with a warning.
+- `DifficultyNameRegistryEntry.registerDifficultyName()` threw a NullPointerException on an entry that had no names yet.
 - Rebuilding the echelon or difficulty-name registry (a reload, or a re-registration while datapack configs are loaded) no longer leaves it briefly empty for lookups on other threads. The new indexes are built off to the side and swapped in at once.
 
 ### Changed

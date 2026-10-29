@@ -111,7 +111,8 @@ public class EchelonRegistry {
 
     public synchronized void register(EchelonConfigsHolder.Config echelonConfig) {
         registeredConfigs.add(echelonConfig);
-        if (dataConfigs.isEmpty()) {
+        // a replacement has to remove the earlier config from the indexes, so rebuild
+        if (dataConfigs.isEmpty() && !isReplacement(echelonConfig)) {
             index(indexes, echelonConfig);
         } else {
             rebuild();
@@ -123,12 +124,45 @@ public class EchelonRegistry {
             return;
         }
         registeredConfigs.addAll(configs);
-        if (dataConfigs.isEmpty()) {
+        if (dataConfigs.isEmpty() && configs.stream().noneMatch(EchelonRegistry::isReplacement)) {
             Indexes current = indexes;
             configs.forEach(config -> index(current, config));
         } else {
             rebuild();
         }
+    }
+
+    private static boolean isReplacement(EchelonConfigsHolder.Config config) {
+        return config != null && Boolean.TRUE.equals(config.getReplace()) && StringUtils.isNotBlank(config.getId());
+    }
+
+    /*
+     * a config with replace = true takes the place of the earlier configs (in this order) with the same id,
+     * so it also takes their precedence. without replace, configs with the same id are all kept (as in 1.0.x).
+     */
+    private static List<EchelonConfigsHolder.Config> resolveReplacements(List<EchelonConfigsHolder.Config> configs) {
+        List<EchelonConfigsHolder.Config> result = new ArrayList<>();
+        for (EchelonConfigsHolder.Config config : configs) {
+            // a config without echelons is never indexed, so it can't replace anything either
+            if (ObjectUtils.isEmpty(config.getEchelons())) {
+                continue;
+            }
+            int place = -1;
+            if (isReplacement(config)) {
+                for (int i = result.size() - 1; i >= 0; i--) {
+                    if (config.getId().equals(result.get(i).getId())) {
+                        result.remove(i);
+                        place = i;
+                    }
+                }
+            }
+            if (place >= 0) {
+                result.add(place, config);
+            } else {
+                result.add(config);
+            }
+        }
+        return result;
     }
 
     /**
@@ -152,9 +186,17 @@ public class EchelonRegistry {
     }
 
     /**
+     * @return the configs registered through register(), ie. toml or code, in registration order.
+     */
+    public synchronized List<EchelonConfigsHolder.Config> getRegisteredConfigs() {
+        return Collections.unmodifiableList(new ArrayList<>(registeredConfigs));
+    }
+
+    /**
      * rebuilds the indexes from both sources.
      * without datapack configs, the registered configs are indexed in registration order (as in 1.0.x).
      * with datapack configs, all configs are indexed by (loadOrder, id).
+     * then replacements are applied.
      */
     private void rebuild() {
         List<EchelonConfigsHolder.Config> configs = new ArrayList<>(registeredConfigs);
@@ -164,7 +206,7 @@ public class EchelonRegistry {
             configs.sort(LOAD_ORDER);
         }
         Indexes next = new Indexes();
-        configs.forEach(config -> index(next, config));
+        resolveReplacements(configs).forEach(config -> index(next, config));
         indexes = next;
     }
 
@@ -201,8 +243,7 @@ public class EchelonRegistry {
         }
         idx.INDEXED.add(echelonConfig);
 
-        // TODO need to check if an entry exists already and if the replace property is set.
-        // add to map
+        // add to map. NOTE replace is applied before indexing, see resolveReplacements()
         if (StringUtils.isNotBlank(echelonConfig.getId())) {
             idx.CONFIGS_BY_ID.put(echelonConfig.getId(), echelonConfig);
         }

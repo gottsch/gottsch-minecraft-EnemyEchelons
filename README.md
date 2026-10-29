@@ -29,6 +29,7 @@ Echelon configs, difficulty-name configs and exclusions can also be shipped as d
 - **Keys** are the snake_case forms of the TOML keys: `hp_factor`/`max_hp`, `damage_factor`/`max_damage`, `knockback_increment`/`max_knockback`, `knockback_resist_increment`/`max_knockback_resist`, `armor_factor`/`max_armor`, `armor_toughness_factor`/`max_armor_toughness`, `speed_factor`/`max_speed`, `flying_speed_factor`/`max_flying_speed`, `xp_factor`/`max_xp`, `dimensions`, `replace`, `mod_whitelist`, `mod_blacklist`, `mob_whitelist`, `mob_blacklist`, `echelons` (`id` optional, `min`, `max`, `histogram` of `difficulty`/`weight`). Difficulty-name configs take the four lists plus `difficulty_names` (`difficulty`/`name`).
 - **`load_order`** is optional (default 99, as the TOML `loadOrder`). When datapack configs are present, the registry holds the TOML configs plus the datapack configs, sorted by (`load_order`, id). A lower number takes precedence.
 - **Strict:** an unknown key or a malformed value (wrong type, a fractional difficulty, `min` > `max`, a weight <= 0, an empty `echelons`/`histogram`/`difficulty_names`) is logged as an error naming the file, and that file is skipped.
+- **`replace`:** a config with `"replace": true` takes the place of every earlier config with the same id, from either source, and with it their precedence. "Earlier" means earlier in the final order. For example, `data/eechelons/echelons/default.json` with the same `load_order` as the TOML `eechelons:default` sorts after it (same `load_order` and id, TOML first) and replaces it. Without `replace`, configs with the same id are all kept, as before.
 - **Caps:** the `max_*` values are read and stored, but are not enforced yet (except `max_xp`), same as for TOML.
 
 ### Echelon config: `data/mymod/echelons/deep.json`
@@ -74,3 +75,10 @@ A mob wildcard (`mymod:*`) in a mob list is the same as adding `mymod` to the ma
 - An excluded mob is left untouched by the global registry: its difficulty stays unset rather than being set to 0. A mod's own custom registry (`EnemyEchelonsApi.customRegistry()`) has no exclusions, so it can still apply its own echelons to that mob.
 - Exclusions don't affect difficulty names.
 - To undo an exclusion, a higher-priority datapack can override the file at the same path with empty lists.
+
+### Checking the registry: `/eechelons dump`
+Requires permission level 2. It lists the following, in chat and in the log:
+- The global echelon configs, in order of precedence, each with its source (`toml` or `data`), `load_order`, lists and echelon count.
+- Any configs that were left out, ex. `replaced by eechelons:default [data]`.
+- The merged exclusions.
+- The difficulty-name configs, in order.

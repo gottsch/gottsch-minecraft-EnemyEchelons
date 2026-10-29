@@ -21,6 +21,7 @@ package mod.gottsch.forge.eechelonsapi.core.event;
 
 import mod.gottsch.forge.eechelonsapi.EEchelonsApiMod;
 import mod.gottsch.forge.eechelonsapi.core.capability.ModCapabilities;
+import mod.gottsch.forge.eechelonsapi.core.command.EchelonsCommand;
 import mod.gottsch.forge.eechelonsapi.core.config.EchelonConfigsHolder;
 import mod.gottsch.forge.eechelonsapi.core.data.EchelonDataLoader;
 import mod.gottsch.forge.eechelonsapi.core.data.EchelonDataReloadListener;
@@ -28,6 +29,7 @@ import mod.gottsch.forge.eechelonsapi.core.echelon.EchelonManager;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
 import net.minecraftforge.event.AddReloadListenerEvent;
+import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.entity.living.LivingExperienceDropEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -61,6 +63,15 @@ public class WorldEventHandler {
 					files -> EchelonDataLoader.applyExclusions(EchelonManager.REGISTRY, files)));
 			event.addListener(new EchelonDataReloadListener(EchelonDataLoader.DIFFICULTY_NAMES_DIRECTORY,
 					EchelonDataLoader::applyNameConfigs));
+		}
+
+		/**
+		 * Registers /eechelons dump.
+		 * @param event The event.
+		 */
+		@SubscribeEvent
+		public static void onRegisterCommands(RegisterCommandsEvent event) {
+			EchelonsCommand.register(event.getDispatcher());
 		}
 
 		/**
