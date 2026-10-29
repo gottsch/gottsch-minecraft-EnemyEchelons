@@ -50,31 +50,39 @@ public class EchelonRegistry {
     private static final ResourceLocation ALL_DIMENSION = new ResourceLocation(".", ".");
 
     /*
-     * map of echelons by id
-     * currently not implemented in any meaningful way.
+     * the lookup indexes. a rebuild fills a new instance and swaps it in with one (volatile) write,
+     * so a lookup on another thread never sees a half built registry.
      */
-    private final Map<String, EchelonConfigsHolder.Config> CONFIGS_BY_ID = Maps.newHashMap();
+    private static class Indexes {
+        /*
+         * map of echelons by id
+         * currently not implemented in any meaningful way.
+         */
+        private final Map<String, EchelonConfigsHolder.Config> CONFIGS_BY_ID = Maps.newHashMap();
 
-    /*
-     * map of echelons by dimension
-     */
-    private final Multimap<ResourceLocation, EchelonConfigsHolder.Config> CONFIGS = ArrayListMultimap.create();
+        /*
+         * map of echelons by dimension
+         */
+        private final Multimap<ResourceLocation, EchelonConfigsHolder.Config> CONFIGS = ArrayListMultimap.create();
 
-    /*
-     * map of echelons by dimension-mod (namespace) pair
-     */
-    private final Map<Pair<ResourceLocation, String>, EchelonConfigsHolder.Config> CONFIGS_BY_MOD = Maps.newHashMap();
+        /*
+         * map of echelons by dimension-mod (namespace) pair
+         */
+        private final Map<Pair<ResourceLocation, String>, EchelonConfigsHolder.Config> CONFIGS_BY_MOD = Maps.newHashMap();
 
-    /*
-     * map of echelons by dimension-mob pair.
-     * this is for white-list mobs.
-     */
-    private final Map<Pair<ResourceLocation, ResourceLocation>, EchelonConfigsHolder.Config> CONFIGS_BY_MOB = Maps.newHashMap();
+        /*
+         * map of echelons by dimension-mob pair.
+         * this is for white-list mobs.
+         */
+        private final Map<Pair<ResourceLocation, ResourceLocation>, EchelonConfigsHolder.Config> CONFIGS_BY_MOB = Maps.newHashMap();
 
-    /*
-     * the configs in the order they were indexed
-     */
-    private final List<EchelonConfigsHolder.Config> INDEXED = new ArrayList<>();
+        /*
+         * the configs in the order they were indexed
+         */
+        private final List<EchelonConfigsHolder.Config> INDEXED = new ArrayList<>();
+    }
+
+    private volatile Indexes indexes = new Indexes();
 
     /*
      * the two sources of configs are kept apart so that a datapack reload never wipes the configs
@@ -104,7 +112,7 @@ public class EchelonRegistry {
     public synchronized void register(EchelonConfigsHolder.Config echelonConfig) {
         registeredConfigs.add(echelonConfig);
         if (dataConfigs.isEmpty()) {
-            index(echelonConfig);
+            index(indexes, echelonConfig);
         } else {
             rebuild();
         }
@@ -116,7 +124,8 @@ public class EchelonRegistry {
         }
         registeredConfigs.addAll(configs);
         if (dataConfigs.isEmpty()) {
-            configs.forEach(this::index);
+            Indexes current = indexes;
+            configs.forEach(config -> index(current, config));
         } else {
             rebuild();
         }
@@ -148,26 +157,22 @@ public class EchelonRegistry {
      * with datapack configs, all configs are indexed by (loadOrder, id).
      */
     private void rebuild() {
-        CONFIGS_BY_ID.clear();
-        CONFIGS.clear();
-        CONFIGS_BY_MOD.clear();
-        CONFIGS_BY_MOB.clear();
-        INDEXED.clear();
-
         List<EchelonConfigsHolder.Config> configs = new ArrayList<>(registeredConfigs);
         if (!dataConfigs.isEmpty()) {
             configs.addAll(dataConfigs);
             // stable sort, so equal keys keep their registration order
             configs.sort(LOAD_ORDER);
         }
-        configs.forEach(this::index);
+        Indexes next = new Indexes();
+        configs.forEach(config -> index(next, config));
+        indexes = next;
     }
 
     /**
      * @return the indexed configs, in the order they were indexed. ie. first is highest precedence.
      */
     public synchronized List<EchelonConfigsHolder.Config> getConfigs() {
-        return Collections.unmodifiableList(new ArrayList<>(INDEXED));
+        return Collections.unmodifiableList(new ArrayList<>(indexes.INDEXED));
     }
 
     public EchelonExclusions getExclusions() {
@@ -188,17 +193,18 @@ public class EchelonRegistry {
 
     /*
      * builds the derived structures (weighted collections, histogram tree) and adds the config to the indexes.
+     * NOTE re-indexing a config is safe: the wildcards are already moved, and the tree is rebuilt the same.
      */
-    private void index(EchelonConfigsHolder.Config echelonConfig) {
+    private void index(Indexes idx, EchelonConfigsHolder.Config echelonConfig) {
         if (ObjectUtils.isEmpty(echelonConfig.getEchelons())) {
             return;
         }
-        INDEXED.add(echelonConfig);
+        idx.INDEXED.add(echelonConfig);
 
         // TODO need to check if an entry exists already and if the replace property is set.
         // add to map
         if (StringUtils.isNotBlank(echelonConfig.getId())) {
-            CONFIGS_BY_ID.put(echelonConfig.getId(), echelonConfig);
+            idx.CONFIGS_BY_ID.put(echelonConfig.getId(), echelonConfig);
         }
 
         // scan the mob white/black list to see if there are any wildcards and move to mod lists.
@@ -254,8 +260,8 @@ public class EchelonRegistry {
                 echelonConfig.getModWhitelist().forEach(mod -> {
                     // create a key pair
                     Pair<ResourceLocation, String> keyPair = new ImmutablePair<>(dimensionKey, mod);
-                    if (!CONFIGS_BY_MOD.containsKey(keyPair)) {
-                        CONFIGS_BY_MOD.put(keyPair, echelonConfig);
+                    if (!idx.CONFIGS_BY_MOD.containsKey(keyPair)) {
+                        idx.CONFIGS_BY_MOD.put(keyPair, echelonConfig);
                     }
                 });
             }
@@ -264,14 +270,14 @@ public class EchelonRegistry {
                 echelonConfig.getMobWhitelist().forEach(mob -> {
                     // create a key pair
                     Pair<ResourceLocation, ResourceLocation> keyPair = new ImmutablePair<>(dimensionKey, new ResourceLocation(mob));
-                    if (!CONFIGS_BY_MOB.containsKey(keyPair)) {
-                        CONFIGS_BY_MOB.put(keyPair, echelonConfig);
+                    if (!idx.CONFIGS_BY_MOB.containsKey(keyPair)) {
+                        idx.CONFIGS_BY_MOB.put(keyPair, echelonConfig);
                     }
                 });
             }
 
             // register ALL configs in the CONFIGS registry regardless if categorized and registered elsewhere
-            CONFIGS.put(dimensionKey, echelonConfig);
+            idx.CONFIGS.put(dimensionKey, echelonConfig);
         });
     }
 
@@ -293,27 +299,29 @@ public class EchelonRegistry {
         if (isExcluded(mobId)) {
             return Optional.empty();
         }
+        // read the indexes once, so the whole lookup sees one version of the registry
+        Indexes idx = indexes;
         Pair<ResourceLocation, ResourceLocation> keyPair = new ImmutablePair<>(dimension, mobId);
-        if (CONFIGS_BY_MOB.containsKey(keyPair)) {
-            return Optional.of(CONFIGS_BY_MOB.get(keyPair));
+        if (idx.CONFIGS_BY_MOB.containsKey(keyPair)) {
+            return Optional.of(idx.CONFIGS_BY_MOB.get(keyPair));
         } else {
             keyPair = new ImmutablePair<>(ALL_DIMENSION, mobId);
-            if (CONFIGS_BY_MOB.containsKey(keyPair)) {
-                return Optional.of(CONFIGS_BY_MOB.get(keyPair));
+            if (idx.CONFIGS_BY_MOB.containsKey(keyPair)) {
+                return Optional.of(idx.CONFIGS_BY_MOB.get(keyPair));
             } else {
                 // create a key pair for the mod
                 Pair<ResourceLocation, String> modKeyPair = new ImmutablePair<>(dimension, keyPair.getValue().getNamespace());
                 // check by mod (ie whitelisted mods)
-                if (CONFIGS_BY_MOD.containsKey(modKeyPair)) {
-                    EchelonConfigsHolder.Config config = CONFIGS_BY_MOD.get(modKeyPair);
+                if (idx.CONFIGS_BY_MOD.containsKey(modKeyPair)) {
+                    EchelonConfigsHolder.Config config = idx.CONFIGS_BY_MOD.get(modKeyPair);
                     if (config.getMobBlacklist().contains(mobId.toString())) {
                         return Optional.empty();
                     }
                     return Optional.of(config);
                 } else {
                     modKeyPair = new ImmutablePair<>(ALL_DIMENSION, keyPair.getValue().getNamespace());
-                    if (CONFIGS_BY_MOD.containsKey(modKeyPair)) {
-                        EchelonConfigsHolder.Config config = CONFIGS_BY_MOD.get(modKeyPair);
+                    if (idx.CONFIGS_BY_MOD.containsKey(modKeyPair)) {
+                        EchelonConfigsHolder.Config config = idx.CONFIGS_BY_MOD.get(modKeyPair);
                         if (config.getMobBlacklist().contains(mobId.toString())) {
                             return Optional.empty();
                         }
@@ -322,9 +330,9 @@ public class EchelonRegistry {
                 }
 
                 // search all remaining configs
-                Optional<EchelonConfigsHolder.Config> echelon = searchEchelonsForMob(dimension, mobId);
+                Optional<EchelonConfigsHolder.Config> echelon = searchEchelonsForMob(idx, dimension, mobId);
                 if (echelon.isEmpty()) {
-                    echelon = searchEchelonsForMob(ALL_DIMENSION, mobId);
+                    echelon = searchEchelonsForMob(idx, ALL_DIMENSION, mobId);
                 }
                 return echelon;
             }
@@ -336,13 +344,17 @@ public class EchelonRegistry {
     }
 
     public Optional<EchelonConfigsHolder.Config> searchEchelonsForMob(ResourceLocation dimension, ResourceLocation mob) {
+        return searchEchelonsForMob(indexes, dimension, mob);
+    }
+
+    private Optional<EchelonConfigsHolder.Config> searchEchelonsForMob(Indexes idx, ResourceLocation dimension, ResourceLocation mob) {
         Optional<EchelonConfigsHolder.Config> echelon = Optional.empty();
         if (isExcluded(mob)) {
             return echelon;
         }
 
         // for each config in a given dimension
-        for (EchelonConfigsHolder.Config e : CONFIGS.get(dimension)) {
+        for (EchelonConfigsHolder.Config e : idx.CONFIGS.get(dimension)) {
             // find the first valid echelon - ie in the mod whitelist and not in the blacklists
             if (!e.getModWhitelist().isEmpty()) {
                 if (e.getModWhitelist().contains(mob.getNamespace())) {

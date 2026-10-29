@@ -59,7 +59,7 @@ Echelon configs, difficulty-name configs and exclusions can also be shipped as d
   ]
 }
 ```
-Mob wildcards (`mymod:*`) are not allowed in the mob lists of a difficulty-name config. Use the mod lists instead.
+A mob wildcard (`mymod:*`) in a mob list is the same as adding `mymod` to the matching mod list.
 
 ### Exclusions: `data/mymod/echelons/exclusions/mymod.json`
 ```json

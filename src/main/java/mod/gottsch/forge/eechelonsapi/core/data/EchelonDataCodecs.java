@@ -147,9 +147,8 @@ public final class EchelonDataCodecs {
         config.setLoadOrder(optInt(object, "load_order", DEFAULT_LOAD_ORDER));
         config.setModWhitelist(stringList(object, "mod_whitelist", EchelonDataCodecs::checkMod));
         config.setModBlacklist(stringList(object, "mod_blacklist", EchelonDataCodecs::checkMod));
-        // NOTE the name registry stores mobs as resource locations, so mob wildcards are not allowed here; use the mod lists.
-        config.setMobWhitelist(stringList(object, "mob_whitelist", EchelonDataCodecs::checkMob));
-        config.setMobBlacklist(stringList(object, "mob_blacklist", EchelonDataCodecs::checkMob));
+        config.setMobWhitelist(stringList(object, "mob_whitelist", EchelonDataCodecs::checkMobOrWildcard));
+        config.setMobBlacklist(stringList(object, "mob_blacklist", EchelonDataCodecs::checkMobOrWildcard));
         config.setDifficultyNames(list(required(object, "difficulty_names"), "difficulty_names", true, EchelonDataCodecs::decodeDifficultyName));
         return config;
     }

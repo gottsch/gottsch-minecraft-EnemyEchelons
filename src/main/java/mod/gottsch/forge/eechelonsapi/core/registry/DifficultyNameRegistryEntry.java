@@ -60,8 +60,8 @@ public class DifficultyNameRegistryEntry {
 
         this.id = new ResourceLocation(config.getId());
         this.loadOrder = config.getLoadOrder();
-        config.getMobBlacklist().forEach(s -> this.getMobBlacklist().add(new ResourceLocation(s)));
-        config.getMobWhitelist().forEach(s -> this.getMobWhitelist().add(new ResourceLocation(s)));
+        addMobs(config.getMobBlacklist(), getMobBlacklist(), getModBlacklist());
+        addMobs(config.getMobWhitelist(), getMobWhitelist(), getModWhitelist());
         if (!config.getModBlacklist().isEmpty()) {
             getModBlacklist().addAll(config.getModBlacklist());
         }
@@ -72,6 +72,25 @@ public class DifficultyNameRegistryEntry {
             this.getDifficultyNames().put(n.getDifficulty(), n.getName());
         });
 
+    }
+
+    /*
+     * a mob wildcard, ex. "minecraft:*", isn't a valid resource location, so it is moved to the mod list.
+     * an invalid mob id is skipped with a warning rather than failing the whole config.
+     */
+    private void addMobs(List<String> source, List<ResourceLocation> mobs, List<String> mods) {
+        source.forEach(mob -> {
+            if (mob.endsWith(":*")) {
+                mods.add(mob.substring(0, mob.indexOf(":")));
+                return;
+            }
+            ResourceLocation mobId = ResourceLocation.tryParse(mob);
+            if (mobId == null) {
+                EEchelonsApiMod.LOGGER.warn("Difficulty Naming Config -> {} has an invalid mob id -> {}, skipping it", id, mob);
+            } else {
+                mobs.add(mobId);
+            }
+        });
     }
 
     public Optional<String> getDifficultyName(Integer difficulty) {

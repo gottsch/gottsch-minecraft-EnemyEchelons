@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -208,6 +209,55 @@ public class EchelonRegistryDataTest {
         blacklisted.register(vanilla);
         blacklisted.register(tomlConfig("toml:catch_all", null, List.of("."), List.of(), List.of()));
         assertTrue(blacklisted.getEchelonConfig(OVERWORLD, new ResourceLocation("minecraft", "cow")).isEmpty());
+    }
+
+    @Test
+    public void lookupsNeverSeeAHalfBuiltRegistry() throws InterruptedException {
+        EchelonRegistry registry = new EchelonRegistry();
+        registry.register(tomlConfig("toml:catch_all", null, List.of("."), List.of(), List.of()));
+        List<EchelonConfigsHolder.Config> data = List.of(dataConfig("eechelonstest:other", "{\"mod_whitelist\": [\"othermod\"], " + echelons(1) + "}"));
+
+        // rebuild over and over on another thread, ie. a reload or a toml re-registration
+        AtomicBoolean done = new AtomicBoolean();
+        Thread reloader = new Thread(() -> {
+            while (!done.get()) {
+                registry.setDataConfigs(data);
+                registry.setDataConfigs(List.of());
+            }
+        });
+        reloader.start();
+        try {
+            for (int i = 0; i < 20000; i++) {
+                assertTrue(registry.getEchelonConfig(OVERWORLD, ZOMBIE).isPresent(), "lookup " + i + " saw an empty registry");
+            }
+        } finally {
+            done.set(true);
+            reloader.join();
+        }
+    }
+
+    @Test
+    public void nameConfigMobWildcardsMoveToTheModLists() {
+        NameConfigsHolder.NameConfig config = new NameConfigsHolder.NameConfig();
+        config.setId("eechelonstest:wildcards");
+        config.setMobWhitelist(new ArrayList<>(List.of("minecraft:*", "minecraft:zombie", "Not A Mob")));
+        config.setMobBlacklist(new ArrayList<>(List.of("othermod:*")));
+        config.setDifficultyNames(new ArrayList<>(List.of(new NameConfigsHolder.DifficultyName(1, "Brute"))));
+
+        // used to throw on "minecraft:*"
+        DifficultyNameRegistryEntry entry = new DifficultyNameRegistryEntry(config);
+        assertEquals(List.of("minecraft"), entry.getModWhitelist());
+        assertEquals(List.of("othermod"), entry.getModBlacklist());
+        // the invalid id is skipped
+        assertEquals(List.of(ZOMBIE), entry.getMobWhitelist());
+        assertTrue(entry.getMobBlacklist().isEmpty());
+
+        // and the datapack form accepts them too
+        EchelonDataLoader.Result<NameConfigsHolder.NameConfig> result = EchelonDataLoader.loadNameConfigs(Map.of(
+                new ResourceLocation("eechelonstest", "wildcards"), JsonParser.parseString(
+                        "{\"mob_whitelist\": [\"minecraft:*\"], \"difficulty_names\": [{\"difficulty\": 1, \"name\": \"Brute\"}]}")));
+        assertTrue(result.getErrors().isEmpty(), result.getErrors().toString());
+        assertEquals(List.of("minecraft"), new DifficultyNameRegistryEntry(result.getValues().get(0)).getModWhitelist());
     }
 
     @Test

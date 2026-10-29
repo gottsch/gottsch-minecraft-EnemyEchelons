@@ -259,7 +259,7 @@ public class EchelonManager {
 
                 if (Math.abs(speedMultiplier) > 1.0E-7) {
                     AttributeModifier speedModifier = new AttributeModifier(
-                            ECHELON_MOVEMENT_SPEED_MODIFIER_ID,
+                            ECHELON_FLYING_SPEED_MODIFIER_ID,
                             "echelonFlyingSpeed",
                             speedMultiplier,
                             AttributeModifier.Operation.MULTIPLY_BASE

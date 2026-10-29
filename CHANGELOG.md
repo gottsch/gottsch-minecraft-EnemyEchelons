@@ -21,6 +21,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Finding the config for a mob that isn't in any mob/mod whitelist no longer stops at the first config whose `modWhitelist` doesn't include the mob's mod. That config is skipped and the search moves on to the next one, so a whitelisting config no longer hides a later config or the catch-all.
 - A config with only a `mobWhitelist` now applies to those mobs only. Before, if the search reached it first, it was picked for every other mob too.
 - Blacklists behave as before: a mob blacklisted by the config that whitelists its mod still gets no modifications.
+- The flying speed modifier was added under the movement speed modifier's UUID, so removing the flying speed modifier never found it. The values applied are unchanged.
+- A mob wildcard, ex. `"minecraft:*"`, in a difficulty-name config's mob lists crashed while loading the config. It now moves to the matching mod list, as it does for echelon configs. An invalid mob id is skipped with a warning.
+- Rebuilding the echelon or difficulty-name registry (a reload, or a re-registration while datapack configs are loaded) no longer leaves it briefly empty for lookups on other threads. The new indexes are built off to the side and swapped in at once.
 
 ### Changed
 - None of the existing public API changed. Without datapack configs, the registries behave as in 1.0.1, apart from the search fix above. With the example `echelons_difficulty_config.toml`, every lookup gives the same result as in 1.0.1.

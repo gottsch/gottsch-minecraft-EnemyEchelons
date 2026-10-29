@@ -39,12 +39,20 @@ import java.util.function.Predicate;
 public class DifficultyNameRegistry {
     private static final ResourceLocation ALL_MOBS = new ResourceLocation(".", ".");
 
-    // ie Map<ID, Entry>. linked so that searches follow registration order.
-    private static Map<ResourceLocation, DifficultyNameRegistryEntry> REGISTRY = Maps.newLinkedHashMap();
+    /*
+     * the lookup maps. a rebuild fills a new instance and swaps it in with one (volatile) write,
+     * so a lookup on another thread never sees a half built registry.
+     */
+    private static class Indexes {
+        // ie Map<ID, Entry>. linked so that searches follow registration order.
+        private final Map<ResourceLocation, DifficultyNameRegistryEntry> REGISTRY = Maps.newLinkedHashMap();
 
-    private static Map<ResourceLocation, DifficultyNameRegistryEntry> BY_MOB = Maps.newHashMap();
+        private final Map<ResourceLocation, DifficultyNameRegistryEntry> BY_MOB = Maps.newHashMap();
 
-    private static Map<String, DifficultyNameRegistryEntry> BY_MOD = Maps.newHashMap();
+        private final Map<String, DifficultyNameRegistryEntry> BY_MOD = Maps.newHashMap();
+    }
+
+    private static volatile Indexes INDEXES = new Indexes();
 
     /*
      * the two sources of entries are kept apart so that a datapack reload never wipes the entries
@@ -69,7 +77,7 @@ public class DifficultyNameRegistry {
         }
         REGISTERED.addAll(entries);
         if (DATA_ENTRIES.isEmpty()) {
-            index(entries);
+            index(INDEXES, entries);
         } else {
             rebuild();
         }
@@ -95,7 +103,7 @@ public class DifficultyNameRegistry {
      * @return the registered entries, in registry order. ie. first is highest precedence.
      */
     public static synchronized List<DifficultyNameRegistryEntry> getEntries() {
-        return List.copyOf(REGISTRY.values());
+        return List.copyOf(INDEXES.REGISTRY.values());
     }
 
     /*
@@ -103,25 +111,23 @@ public class DifficultyNameRegistry {
      * with datapack entries, all entries are indexed by (loadOrder, id).
      */
     private static void rebuild() {
-        REGISTRY.clear();
-        BY_MOB.clear();
-        BY_MOD.clear();
-
         List<DifficultyNameRegistryEntry> entries = new ArrayList<>(REGISTERED);
         if (!DATA_ENTRIES.isEmpty()) {
             entries.addAll(DATA_ENTRIES);
             // stable sort, so equal keys keep their registration order
             entries.sort(LOAD_ORDER);
         }
-        index(entries);
-        REGISTERED_BY_KEY.forEach(REGISTRY::put);
+        Indexes next = new Indexes();
+        index(next, entries);
+        REGISTERED_BY_KEY.forEach(next.REGISTRY::put);
+        INDEXES = next;
     }
 
-    private static void index(List<DifficultyNameRegistryEntry> entries) {
+    private static void index(Indexes idx, List<DifficultyNameRegistryEntry> entries) {
         entries.forEach(entry -> {
 
             // register all entries by id
-            REGISTRY.put(entry.getId(), entry);
+            idx.REGISTRY.put(entry.getId(), entry);
 
             // scan the mob white/black list to see if there are any wildcards and move to mod lists.
             Predicate<ResourceLocation> isWildcard = mob -> mob.getPath().equals("*");
@@ -142,13 +148,13 @@ public class DifficultyNameRegistry {
                 entry.getModWhitelist().forEach(modNamespace -> {
                     if (modNamespace.equals(".") || modNamespace.equals(".:.")
                     || modNamespace.equals("*") || modNamespace.equals("*:*")) {
-                        if (!BY_MOD.containsKey("*:*")) {
-                            BY_MOD.put(ALL_MOBS.toString(), entry);
+                        if (!idx.BY_MOD.containsKey("*:*")) {
+                            idx.BY_MOD.put(ALL_MOBS.toString(), entry);
                         }
                     }
                     // if not already registered, then register it
-                    else if (!BY_MOD.containsKey(modNamespace.toLowerCase())) {
-                        BY_MOD.put(modNamespace.toLowerCase(), entry);
+                    else if (!idx.BY_MOD.containsKey(modNamespace.toLowerCase())) {
+                        idx.BY_MOD.put(modNamespace.toLowerCase(), entry);
                     }
                 });
             }
@@ -157,8 +163,8 @@ public class DifficultyNameRegistry {
             if (!entry.getMobWhitelist().isEmpty()) {
                 entry.getMobWhitelist().forEach(mobId -> {
                     // create a key pair
-                    if (!BY_MOB.containsKey(mobId)) {
-                        BY_MOB.put(mobId, entry);
+                    if (!idx.BY_MOB.containsKey(mobId)) {
+                        idx.BY_MOB.put(mobId, entry);
                     }
                 });
             }
@@ -168,20 +174,24 @@ public class DifficultyNameRegistry {
     }
 
     public static Optional<DifficultyNameRegistryEntry> getDifficultyEntry(Mob mob) {
+        // read the indexes once, so the whole lookup sees one version of the registry
+        Indexes idx = INDEXES;
         ResourceLocation mobId =  EntityType.getKey(mob.getType());
-        if (BY_MOB.containsKey(mobId)) {
-            return Optional.of(BY_MOB.get(mobId));
+        if (idx.BY_MOB.containsKey(mobId)) {
+            return Optional.of(idx.BY_MOB.get(mobId));
         }
         else {
             // search all remaining configs
-            return searchForMob(mob.level().dimension().location(), mob);
+            return searchForMob(idx, mobId);
         }
     }
 
     public static Optional<DifficultyNameRegistryEntry> searchForMob(ResourceLocation dimension, Mob entity) {
-        ResourceLocation mob = EntityType.getKey(entity.getType());
+        return searchForMob(INDEXES, EntityType.getKey(entity.getType()));
+    }
 
-        for (DifficultyNameRegistryEntry e : REGISTRY.values()) {
+    private static Optional<DifficultyNameRegistryEntry> searchForMob(Indexes idx, ResourceLocation mob) {
+        for (DifficultyNameRegistryEntry e : idx.REGISTRY.values()) {
             // find the first valid config - ie in the mod whitelist and not in the blacklists
 
             // mod whitelist contains a wildcard
@@ -203,11 +213,11 @@ public class DifficultyNameRegistry {
 
     public static synchronized Optional<DifficultyNameRegistryEntry> register(ResourceLocation key, DifficultyNameRegistryEntry entry) {
         REGISTERED_BY_KEY.put(key, entry);
-        return Optional.ofNullable(REGISTRY.put(key, entry));
+        return Optional.ofNullable(INDEXES.REGISTRY.put(key, entry));
     }
 
     public static Optional<DifficultyNameRegistryEntry> getById(ResourceLocation key) {
-        return Optional.ofNullable(REGISTRY.get(key));
+        return Optional.ofNullable(INDEXES.REGISTRY.get(key));
     }
 
     public static Optional<String> getDifficultyName(Mob mob, Integer difficulty) {
