@@ -1,0 +1,12 @@
+{
+  "load_order": 10,
+  "mod_whitelist": ["minecraft"],
+  "mod_blacklist": [],
+  "mob_whitelist": ["minecraft:zombie", "minecraft:skeleton"],
+  "mob_blacklist": ["minecraft:creeper"],
+  "difficulty_names": [
+    { "difficulty": 0, "name": "Vanilla" },
+    { "difficulty": 1, "name": "Brute" },
+    { "difficulty": 2, "name": "Captain" }
+  ]
+}

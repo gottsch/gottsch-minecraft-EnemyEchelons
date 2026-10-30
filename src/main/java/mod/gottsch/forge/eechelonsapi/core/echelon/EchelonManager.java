@@ -99,6 +99,11 @@ public class EchelonManager {
             return;
         }
 
+        // an excluded mob is left unset (not 0) so that another registry may still apply to it
+        if (registry.isExcluded(mob)) {
+            return;
+        }
+
         // get the config by mob
         Optional<Config> echelonConfig = registry.getEchelonConfig(mob);
 
@@ -142,6 +147,11 @@ public class EchelonManager {
         IDifficultyHandler difficultyHandler = handler.map(c -> c).orElseThrow(IllegalStateException::new);
         // check if mob capability values have already been set
         if (difficultyHandler.getDifficulty() > DIFFICULTY_NOT_SET) {
+            return;
+        }
+
+        // an excluded mob is left unset (not 0) so that another registry may still apply to it
+        if (registry.isExcluded(mob)) {
             return;
         }
 
@@ -249,7 +259,7 @@ public class EchelonManager {
 
                 if (Math.abs(speedMultiplier) > 1.0E-7) {
                     AttributeModifier speedModifier = new AttributeModifier(
-                            ECHELON_MOVEMENT_SPEED_MODIFIER_ID,
+                            ECHELON_FLYING_SPEED_MODIFIER_ID,
                             "echelonFlyingSpeed",
                             speedMultiplier,
                             AttributeModifier.Operation.MULTIPLY_BASE

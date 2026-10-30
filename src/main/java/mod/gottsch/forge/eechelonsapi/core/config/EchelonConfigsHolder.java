@@ -57,6 +57,21 @@ public class EchelonConfigsHolder {
 		this.configs = configs;
 	}
 
+	/**
+	 * copies the file level loadOrder onto each config that doesn't have its own,
+	 * so the configs can be sorted alongside datapack configs.
+	 */
+	public void applyLoadOrder() {
+		if (configs == null) {
+			return;
+		}
+		configs.forEach(config -> {
+			if (config.loadOrder == null) {
+				config.loadOrder = getLoadOrder();
+			}
+		});
+	}
+
 	public static class Config {
 		private String id;
 		private List<String> dimensions;
@@ -96,6 +111,9 @@ public class EchelonConfigsHolder {
 		private List<String> mobBlacklist;
 
 		private List<Echelon> echelons;
+
+		// if no loadOrder is provided, defaults to 99 (low precedence)
+		private Integer loadOrder;
 
 		// internal: not set by config, but set by the manager
 		private IIntervalTree<WeightedCollection<Double, Integer>> histogram;
@@ -419,6 +437,14 @@ public class EchelonConfigsHolder {
         public void setMaxFlyingSpeed(Double maxFlyingSpeed) {
             this.maxFlyingSpeed = maxFlyingSpeed;
         }
+
+		public Integer getLoadOrder() {
+			return loadOrder == null ? 99 : loadOrder;
+		}
+
+		public void setLoadOrder(Integer loadOrder) {
+			this.loadOrder = loadOrder;
+		}
     }
 	
 	/*

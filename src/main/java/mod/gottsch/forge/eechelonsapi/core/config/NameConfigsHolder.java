@@ -46,6 +46,9 @@ public class NameConfigsHolder {
 
         private List<DifficultyName> difficultyNames;
 
+        // if no loadOrder is provided, defaults to 99 (low precedence)
+        private Integer loadOrder;
+
         public String getId() {
             return id;
         }
@@ -104,6 +107,14 @@ public class NameConfigsHolder {
 
         public void setModWhitelist(List<String> modWhitelist) {
             this.modWhitelist = modWhitelist;
+        }
+
+        public Integer getLoadOrder() {
+            return loadOrder == null ? 99 : loadOrder;
+        }
+
+        public void setLoadOrder(Integer loadOrder) {
+            this.loadOrder = loadOrder;
         }
     }
 

@@ -1,0 +1,49 @@
+# the TOML equivalent of data/eechelonstest/echelons/deep_dark.json
+loadOrder = 5
+
+[[configs]]
+	id = "eechelonstest:deep_dark"
+	dimensions = ["minecraft:overworld"]
+	hpFactor = 0.25
+	maxHp = 200.0
+	damageFactor = 0.2
+	maxDamage = 10.0
+	knockbackIncrement = 0.2
+	maxKnockback = 2.0
+	knockbackResistIncrement = 0.1
+	maxKnockbackResist = 0.8
+	armorFactor = 0.1
+	maxArmor = 20.0
+	armorToughnessFactor = 0.05
+	maxArmorToughness = 8.0
+	speedFactor = 0.05
+	maxSpeed = 0.35
+	flyingSpeedFactor = 0.01
+	maxFlyingSpeed = 0.15
+	xpFactor = 0.2
+	maxXp = 100.0
+	replace = false
+	modWhitelist = ["minecraft"]
+	modBlacklist = []
+	mobWhitelist = []
+	mobBlacklist = ["minecraft:creeper", "minecraft:warden"]
+
+	[[configs.echelons]]
+		id = "eechelonstest:surface"
+		min = 0
+		max = 319
+		[[configs.echelons.histogram]]
+			difficulty = 0
+			weight = 200.0
+		[[configs.echelons.histogram]]
+			difficulty = 1
+			weight = 100.0
+	[[configs.echelons]]
+		min = -64
+		max = -1
+		[[configs.echelons.histogram]]
+			difficulty = 2
+			weight = 100.0
+		[[configs.echelons.histogram]]
+			difficulty = 3
+			weight = 25.0
